@@ -1,6 +1,6 @@
 # SABR calibration implementation (log normal volatility cubes)
 This code implementes in F# the calibration of volatility surfaces using Stochastic Alfa, Beta, Gamma and Rho (SABR).
-The code is based on the article "Managin the Smile" by Hagan in 2002. 
+The code is based on the article "Managing the Smile" by Hagan in 2002 ( https://www.researchgate.net/publication/235622441_Managing_Smile_Risk )
 
 The code is structured as follows:
 ## Project 
@@ -9,13 +9,14 @@ Includes the SABR approximation volatility formulas for the lognormal case inclu
 
 The smile calibration is performed using Broyden–Fletcher–Goldfarb–Shanno Bounded (BFGS-B) algorithm.(https://github.com/frannuca/qsabr/blob/a18790dbed610a7976e5c9beed0d2d9665ade09f/volatility/sabr.fs#LL109C3-L109C3)
 
--**volcube** (https://github.com/frannuca/qsabr/blob/main/volatility/volcube.fs) includes a volatility surface building and companion class 
+- **volcube** (https://github.com/frannuca/qsabr/blob/main/volatility/volcube.fs) includes a volatility surface building and companion class 
 to build surfaces by specifying surface points.
 
--**qirvol** (https://github.com/frannuca/qsabr/blob/main/qirvol/Program.cs) is a simple C# programs which demonstrate how to use the F# library from C#.
+- **qirvol** (https://github.com/frannuca/qsabr/blob/main/qirvol/Program.cs) is a simple C# programs which demonstrate how to use the F# library from C#.
 
--**qrirvol_test** project contains unit tests which can be visitied to demonstrate the usage of the library from F#. 
-The construction of a volatility surface and its calibration is demonstrated in  https://github.com/frannuca/qsabr/blob/main/qrirvol_tests/sabr_surface_tests.fs , where a complete surface (with various maturities and tenors) is built, calibrated and check for accuracy the benchmark provided in 
+- **qrirvol_test** project contains unit tests which can be visitied to demonstrate the usage of the library from F#. 
+The construction of a volatility surface and its calibration is demonstrated in  https://github.com/frannuca/qsabr/blob/main/qrirvol_tests/sabr_surface_tests.fs , where a complete surface (with various maturities and tenors) is built, calibrated and check for accuracy against the benchmark provided in https://github.com/frannuca/qsabr/blob/main/data/market_data.xlsx .
+
 
 
 

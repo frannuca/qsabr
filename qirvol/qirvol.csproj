@@ -8,12 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\qtime\qtime.fsproj" />
+    <ProjectReference Include="..\qdata\qdata.csproj" />
     <ProjectReference Include="..\volatility\volatility.fsproj" />
+    <ProjectReference Include="..\qtime\qtime.fsproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
-    <PackageReference Include="System.CommandLine.Parser" Version="0.1.1" />
     <PackageReference Include="CsvHelper" Version="30.0.1" />
   </ItemGroup>
   <ItemGroup>

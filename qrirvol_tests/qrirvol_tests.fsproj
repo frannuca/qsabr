@@ -11,7 +11,8 @@
   <ItemGroup>    
     <Compile Include="sabr_function_tests.fs" />
     <Compile Include="sabr_surface_tests.fs" />
-    <Compile Include="Program.fs" />    
+    <Compile Include="sabr_resampling_tests.fs" />
+    <Compile Include="Program.fs" />        
   </ItemGroup>
 
   <ItemGroup>
@@ -30,5 +31,13 @@
   <ItemGroup>
     <ProjectReference Include="..\qtime\qtime.fsproj" />
     <ProjectReference Include="..\volatility\volatility.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="data\computed.csv" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="data\volsurface.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>

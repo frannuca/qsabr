@@ -11,6 +11,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "volatility", "volatility\vo
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "qrirvol_tests", "qrirvol_tests\qrirvol_tests.fsproj", "{43E33B12-BFD3-4515-9ABE-56457D622D6F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qdata", "qdata\qdata.csproj", "{0FBAA1F7-BF93-4753-B1E1-0D7E5CEA4A3B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{43E33B12-BFD3-4515-9ABE-56457D622D6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43E33B12-BFD3-4515-9ABE-56457D622D6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{43E33B12-BFD3-4515-9ABE-56457D622D6F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0FBAA1F7-BF93-4753-B1E1-0D7E5CEA4A3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0FBAA1F7-BF93-4753-B1E1-0D7E5CEA4A3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0FBAA1F7-BF93-4753-B1E1-0D7E5CEA4A3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0FBAA1F7-BF93-4753-B1E1-0D7E5CEA4A3B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

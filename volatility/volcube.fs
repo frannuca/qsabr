@@ -6,7 +6,7 @@ open qirvol.qtime
 
 ///Volatility data point to identify a single point of the volatility surface. 
 ///i.e: maturity, tenor, strike and vol surface point.
-type VolPillar = {tenor:int<month>;strike:float;maturity:float<year>;volatility:float;forwardrate:float}
+type VolPillar = {tenor:int<month>;strike:float;maturity:float<year>;volatility:float;forwardrate:float;}
 
 
 ///Volatility cube class.
@@ -26,7 +26,7 @@ type VolSurface(pillars:VolPillar array)=
                                                          |> Map.ofArray
                                                          |> Map.map(fun _ x -> x|> Array.sortBy(fun x -> x.strike)))
                     
-
+           
 
 
     ///Maturities expressed in days. Day unit allows to use int keys for maturities with a resolution of 1day.    
@@ -41,6 +41,19 @@ type VolSurface(pillars:VolPillar array)=
     member self.Smile(texp:float<year>,tenor:int<month>)=
         cubekeys.[int(texp*timeconversions.years2days)*1<day>].[tenor]
 
+    member self.to_csv(filepath:string)=
+        use file=new System.IO.StreamWriter(filepath)
+        file.WriteLine("Tenor,Expiry,Fwd,Strike,Vol")
+        cubekeys
+        |> Map.iter(fun texp_days frame ->
+                             let texp = float(texp_days)*1.0<day>*timeconversions.days2year
+                             frame
+                             |> Map.iter(fun tenor  pillars ->
+                                            pillars
+                                            |> Array.iter(fun pillar ->
+                                                            file.WriteLine($"{float tenor/timeconversions.years2months},{texp},{pillar.forwardrate},{pillar.strike},{pillar.volatility}")))
+        )
+                
 
 ///Helper vol surface builder.
 type VolSurfaceBuilder()=
@@ -58,6 +71,10 @@ type VolSurfaceBuilder()=
         _pillars.AddRange(vol |> Seq.filter(fun p -> p.volatility>0.0))
         self
 
+    member self.withMap(m:Map<float<year>,Map<int<month>,VolPillar array>>)=        
+        m |> Map.iter(fun _ frme -> frme |> Map.iter(fun _ x -> _pillars.AddRange(x)))
+        self
+        
     /// builds the surface  and returns a VolSurface object.
     ///TODO: Add validation logic, throwing exceptions in case of surface mispecifications.
     member self.Build()=

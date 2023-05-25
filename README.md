@@ -4,19 +4,19 @@ The code is based on the article "Managing the Smile" by Hagan in 2002 ( https:/
 
 The following projects/files are good entry points to locate the most relevant logic:
 
-## **qirvol** 
+## Project **qirvol** 
 (https://github.com/frannuca/qsabr/blob/main/volatility/sabr.fs)
-Simple console application which accepts an input csv with volatility surface data as per the format of the file https://github.com/frannuca/qsabr/blob/main/qrirvol_tests/data/volsurface.csv. The program generates two files, 
+Simple console application which accepts aa input a csv with volatility surface data as per the format depicted in the file https://github.com/frannuca/qsabr/blob/main/qrirvol_tests/data/volsurface.csv. 
+The program generates two files, namely:
 - one with a new interpolated vol surface and
-- the SABR coefficents
+- a second one with the SABR coefficents
 both in csv format.
 
-Command line example:
+Command line usage:
 >>./qirvol --input=<path to volsurface.csv> --output=C:/temp --resolution=1000
 
-## **volcube** 
+## Project **volcube** 
 (https://github.com/frannuca/qsabr/blob/main/volatility/volcube.fs) 
-Volatility surface data structure implemented as a builder class (VolSurfaceBuilder) to help for the construction and its companion class VolSurface.
 
 ## **qirvol** (https://github.com/frannuca/qsabr/blob/main/qirvol/Program.cs) 
 Simple C# programs which demonstrate how to use the F# library from C#.

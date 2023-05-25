@@ -110,6 +110,7 @@ type Testing_Surface_SABR()=
         let nu0=0.1
         let rho0=0.3
         let beta=0.5
+
         // calibration of the surface (smile) 
         let res = SABR.sigma_calibrate(surface,nu0,rho0,beta)
 
@@ -131,16 +132,7 @@ type Testing_Surface_SABR()=
                                                                     expected
 
                                         (computed_no_zeros,expected)
-                                        ||> Array.iter2(fun a b -> Assert.Equal(a,b,tolerance=0.15))  
-                                            
-
-                                        
-
-
-
-                                            
-                          )
-        )
+                                        ||> Array.iter2(fun a b -> Assert.Equal(a,b,0.15))))
         
         
         0.0

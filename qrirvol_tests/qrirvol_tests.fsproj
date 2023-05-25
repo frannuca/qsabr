@@ -33,7 +33,8 @@
     <ProjectReference Include="..\volatility\volatility.fsproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="data\computed.csv" />
+    <None Include="data\resampled_300.csv" />
+    <None Include="data\sabrcube.csv" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="data\volsurface.csv">

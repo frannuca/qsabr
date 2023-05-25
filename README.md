@@ -2,11 +2,11 @@
 Calibration of volatility surfaces using Stochastic Alfa, Beta, Gamma and Rho (SABR).
 The code is based on the article "Managing the Smile" by Hagan in 2002 ( https://www.researchgate.net/publication/235622441_Managing_Smile_Risk )
 
-The following projects/files are good entry points to locate the most relevant logic:
+The following projects/files are good entry points to find the most relevant logic:
 
 ## Project **qirvol** 
 (https://github.com/frannuca/qsabr/blob/main/volatility/sabr.fs)
-Simple console application which accepts aa input a csv with volatility surface data as per the format depicted in the file https://github.com/frannuca/qsabr/blob/main/qrirvol_tests/data/volsurface.csv. 
+Simple console application which accepts aa input a csv file with volatility surface data (as per the format depicted in the file https://github.com/frannuca/qsabr/blob/main/qrirvol_tests/data/volsurface.csv). 
 The program generates two files, namely:
 - one with a new interpolated vol surface and
 - a second one with the SABR coefficents
@@ -16,19 +16,15 @@ Command line usage:
 >>./qirvol --input=<path to volsurface.csv> --output=C:/temp --resolution=1000
 
 ## Project **volcube** 
-(https://github.com/frannuca/qsabr/blob/main/volatility/volcube.fs) 
+This project includes data structure definitions to access volatilty surfaces (https://github.com/frannuca/qsabr/blob/main/volatility/volcube.fs) and sabr coefficients cubes (https://github.com/frannuca/qsabr/blob/main/volatility/sabrcube.fs). 
+ The calibration using (lognormal approximation) is part of the module SABR, more specifically the function https://github.com/frannuca/qsabr/blob/main/volatility/sabr.fs#L51, which applies BFGS-B algorithm (Broyden–Fletcher–Goldfarb–Shanno Bounded) to optimize rho and nu coefficent for a given beta and resolved alpha to match at the moment volatility for each smile. This approach shows to be stable and fast convergent.
 
-## **qirvol** (https://github.com/frannuca/qsabr/blob/main/qirvol/Program.cs) 
-Simple C# programs which demonstrate how to use the F# library from C#.
-To run a calibration and generate of new surface run the following command:
+ Lastly the module SABRInterpolator (https://github.com/frannuca/qsabr/blob/main/volatility/sabrinterpolator.fs#L13) includes various functions to re-sample the original volutility surface to higher strike resolutions.
  
-  >> qirvol --input= <path to volsurface.csv> --output=<path to the ouput file> --resolution=100
-  
- This command will read market data included inthe volatility.csv  (https://github.com/frannuca/qsabr/blob/main/data/volsurface.csv), calibrate the surface 
-  and generate a new surface with 100 strikes. The output result will be dumped into the output csv file specificed with th option --output
-
-## **qrirvol_test** project contains unit tests which can be visitied to demonstrate the usage of the library from F#. 
-The construction of a volatility surface and its calibration is demonstrated in  https://github.com/frannuca/qsabr/blob/main/qrirvol_tests/sabr_surface_tests.fs , where a complete surface (with various maturities and tenors) is built, calibrated and check for accuracy against the benchmark provided in https://github.com/frannuca/qsabr/blob/main/data/market_data.xlsx .
+ 
+## **qrirvol_test** 
+Contains unit tests which can be visitied to demonstrate the usage of the library from F#. 
+The construction of a volatility surface and its calibration is demonstrated in  https://github.com/frannuca/qsabr/blob/main/qrirvol_tests/sabr_surface_tests.fs , where a complete surface (with various maturities and tenors) is built, calibrated and check for accuracy against a chosen benchmark.
 
 
 

@@ -4,7 +4,7 @@ open System
 open System.Collections.Immutable
 open qirvol.qtime
 
-///Volatility data point to identify a single point of the volatility surface. 
+///Volatility data structure to identify a single point in the volatility surface. 
 ///i.e: maturity, tenor, strike and vol surface point.
 type VolPillar = {tenor:int<month>;strike:float;maturity:float<year>;volatility:float;forwardrate:float;}
 
@@ -41,6 +41,7 @@ type VolSurface(pillars:VolPillar array)=
     member self.Smile(texp:float<year>,tenor:int<month>)=
         cubekeys.[int(texp*timeconversions.years2days)*1<day>].[tenor]
 
+    /// Serializes into csv the vol sureface
     member self.to_csv(filepath:string)=
         use file=new System.IO.StreamWriter(filepath)
         file.WriteLine("Tenor,Expiry,Fwd,Strike,Vol")

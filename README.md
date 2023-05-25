@@ -28,7 +28,7 @@ The construction of a volatility surface and its calibration is demonstrated in 
 Seriealization of re-sampled surface into csv is demonstrated in https://github.com/frannuca/qsabr/blob/main/qrirvol_tests/sabr_resampling_tests.fs.
  
  ## **qdata** and **qtime**
- Are work in progress use more as place holder for a future calendar library and data transformations.
+ Are work in progress intended more as placeholder for a future calendar library and data transformations.
  
  
 

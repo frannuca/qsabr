@@ -1,5 +1,5 @@
 # SABR calibration implementation (log normal volatility cubes)
-Calibration of volatility surfaces using Stochastic Alfa, Beta, Gamma and Rho (SABR).
+Calibration of volatility surfaces using Stochastic Alfa, Beta, Rho (SABR).
 The code is based on the article "Managing the Smile" by Hagan in 2002 ( https://www.researchgate.net/publication/235622441_Managing_Smile_Risk )
 
 The following projects/files are good entry points to find the most relevant logic:

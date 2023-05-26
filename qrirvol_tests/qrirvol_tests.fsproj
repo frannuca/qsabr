@@ -12,11 +12,12 @@
     <Compile Include="sabr_function_tests.fs" />
     <Compile Include="sabr_surface_tests.fs" />
     <Compile Include="sabr_resampling_tests.fs" />
-    <Compile Include="Program.fs" />        
+    <Compile Include="total_variance_interpolation_tests.fs" />
+    <Compile Include="Program.fs" />            
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.0" />
     <PackageReference Include="xunit" Version="2.4.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

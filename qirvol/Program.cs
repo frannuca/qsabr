@@ -6,7 +6,7 @@ using System.IO;
 using Microsoft.VisualBasic.FileIO;
 using qirvol.comands;
 using CommandLine;
-using qirvol.comands;
+
 // Main Method
 static class Program {
     static public void Main(String[] args)

@@ -75,7 +75,8 @@ module SABR=
             
             
 
-
+    let Sigma_SABR_Smile(param:SABRSolu)=
+        fun k -> Sigma_SABR(param.alpha,param.beta,param.nu,param.texp,param.rho,param.f,k)
 
     let Solve_alpha_for_ATM(sigmaATM:float,b:float,nu:float,texp:float<year>,rho:float,f:float)=
         if sigmaATM <= 0.0 || f <= 0.0   then 0.0
@@ -100,7 +101,7 @@ module SABR=
                                     let sigma_b = p.volatility
                                     (Sigma_SABR(alpha,beta,nu,texp,rho,p.strike,f)-sigma_b)**2.0
                         )|> Array.sum       
-        System.Console.WriteLine(error)
+        //System.Console.WriteLine(error)
         error
 
     

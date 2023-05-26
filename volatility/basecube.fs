@@ -17,7 +17,7 @@ type BaseSabrCube<'T>(cube:Map<float<year>,Map<int<month>,'T array>>)=
     ///   ii) minimum tenor to be used is 1m as it is declared in month unites.
     /// Swaption quotes are though starting at 1m tenors up to 50y (50x12 month) rendering this option sound.    
     let  cubekeys= cube |> Seq.map(fun kv -> int(kv.Key*timeconversions.years2days)*1<day>,kv.Value) |> Map.ofSeq
-                               
+    let cube_years = cube                          
     ///Maturities expressed in days. Day unit allows to use int keys for maturities with a resolution of 1day.    
     member self.maturities with get()= cubekeys.Keys |> Array.ofSeq
 
@@ -32,6 +32,7 @@ type BaseSabrCube<'T>(cube:Map<float<year>,Map<int<month>,'T array>>)=
 
 
     member self.Cube with get() = cubekeys
+    member self.Cube_Ty  with get()= cube_years
     //Writes the coefficents cube to csv file.
     abstract member to_csv: string -> unit
        

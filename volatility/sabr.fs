@@ -143,6 +143,6 @@ module SABR=
         volsurface.maturities
         |> Array.map(fun texp -> let ftexp = float(texp)*1.0<day>*timeconversions.days2year
                                  ftexp,volsurface.tenors_by_maturity(ftexp) |> Array.ofSeq
-                                 |> Array.map(fun tenor -> tenor,calibrate_smile(volsurface.Smile(ftexp,tenor),nu0,rho0,beta))|> Map.ofArray)
+                                 |> Array.map(fun tenor -> tenor,[|calibrate_smile(volsurface.Smile(ftexp,tenor),nu0,rho0,beta)|])|> Map.ofArray)
                                  |>Map.ofArray
     

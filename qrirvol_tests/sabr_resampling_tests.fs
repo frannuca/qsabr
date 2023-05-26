@@ -1,7 +1,4 @@
-﻿
-
-
-module Test_SURFACE_RESAMPLING_SABR
+﻿module Test_SURFACE_RESAMPLING_SABR
 
 open System
 open Xunit

@@ -43,9 +43,10 @@ module SABRInterpolator=
                     surface            
                     |>Map.map(fun t tenorframe ->
                                        tenorframe
-                                       |>  Map.map(fun tenor param ->
+                                       |>  Map.map(fun tenor paramarr ->
+                                               let param= paramarr |> Array.last
                                                strikes_bps
-                                               |> Array.map(fun dk ->
+                                               |> Array.map(fun dk ->                                                                    
                                                                       let v = SABR.Sigma_SABR(param.alpha,param.beta,param.nu,param.texp,param.rho,param.f+dk*1e-4,param.f)                                                              
                                                                       {VolPillar.forwardrate=param.f;VolPillar.maturity=t;VolPillar.strike=param.f+dk*1e-4;VolPillar.tenor=tenor;VolPillar.volatility=v}
                                                                       )))

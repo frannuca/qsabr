@@ -46,13 +46,13 @@ type Testing_Surface_SABR()=
 
 
         //Checking the results
-        Assert.Equal(coeff.alpha,0.048400445737410716,2)
-        Assert.Equal(coeff.beta,0.5,2)
-        Assert.Equal(coeff.nu,0.37371398762385843,2)
-        Assert.Equal(coeff.rho,-0.03295848492102798,2)
-        Assert.Equal(float coeff.tenor,float 3,2)
-        Assert.Equal(float coeff.texp,float texp,2)
-        Assert.Equal(float coeff.f,float f,2)
+        Assert.Equal(coeff.[0].alpha,0.048400445737410716,2)
+        Assert.Equal(coeff.[0].beta,0.5,2)
+        Assert.Equal(coeff.[0].nu,0.37371398762385843,2)
+        Assert.Equal(coeff.[0].rho,-0.03295848492102798,2)
+        Assert.Equal(float coeff.[0].tenor,float 3,2)
+        Assert.Equal(float coeff.[0].texp,float texp,2)
+        Assert.Equal(float coeff.[0].f,float f,2)
         
         
    
@@ -115,11 +115,11 @@ type Testing_Surface_SABR()=
         let res = SABR.sigma_calibrate(surface,nu0,rho0,beta)
 
         res
-        |> Map.iter(fun (T:float<year>) (tenor2param:Map<int<month>,SABR.SABRSolu>) ->
+        |> Map.iter(fun (T:float<year>) (tenor2param:Map<int<month>,SABR.SABRSolu array>) ->
                           tenor2param
                           |> Map.iter(fun tenor x ->
                                         let computed = strikes_in_bps                                                   
-                                                        |> Array.map(fun k-> SABR.Sigma_SABR(x.alpha,x.beta,x.nu,T,x.rho,x.f+k*1e-4,x.f))
+                                                        |> Array.map(fun k-> SABR.Sigma_SABR(x.[0].alpha,x.[0].beta,x.[0].nu,T,x.[0].rho,x.[0].f+k*1e-4,x.[0].f))
                                                         
                                         let expected = surface.Smile(T,tenor)
                                                         |> Array.map(fun y -> y.volatility)

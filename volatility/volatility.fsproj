@@ -6,11 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="basecube.fs" />
     <Compile Include="volcube.fs" />
     <Compile Include="sabr.fs" />
     <Compile Include="sabrcube.fs" />
-    <Compile Include="sabrinterpolator.fs" />
-   
+    <Compile Include="sabrinterpolator.fs" />       
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MathNet.Numerics" Version="5.0.0">

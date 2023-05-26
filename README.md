@@ -22,13 +22,14 @@ This project includes data structure definitions to access volatilty surfaces an
  - (https://github.com/frannuca/qsabr/blob/main/volatility/sabrcube.fs) is the data class to manage SABR coefficient cubes.
  - The calibration using (lognormal approximation) is part of the module SABR, more specifically the function https://github.com/frannuca/qsabr/blob/main/volatility/sabr.fs#L51, which applies BFGS-B algorithm (Broyden–Fletcher–Goldfarb–Shanno Bounded) to optimize rho and nu coefficent for a given beta and resolved alpha to match at the moment volatility for each smile. This approach shows to be stable and fast convergent.
 
- -  The module SABRInterpolator (https://github.com/frannuca/qsabr/blob/main/volatility/sabrinterpolator.fs#L13) includes various functions to re-sample the original volutility surface to higher strike resolutions as well as an interpolation algorithm for maturities not included in the original surface, therefore, this module allows the standard strike interpolation but also to compute smiles at maturities not provided in the surface.
+ -  The module SABRInterpolator (https://github.com/frannuca/qsabr/blob/main/volatility/sabrinterpolator.fs#L13) includes various functions to re-sample the original volutility surface to higher strike resolutions as well as an interpolation algorithm for maturities not included in the original surface, therefore, this module allows the standard strike interpolation but also to compute smiles at maturities not provided in the surface using total variance intepolation approach (https://www.iasonltd.com/doc/old_rps/2007/2013_The_implied_volatility_surfaces.pdf)
  
  
 ## **qrirvol_test** 
 Contains unit tests which can be visitied to demonstrate the usage of the library from F#. 
-The construction of a volatility surface and its calibration is demonstrated in  https://github.com/frannuca/qsabr/blob/main/qrirvol_tests/sabr_surface_tests.fs , where a complete surface (with various maturities and tenors) is built, calibrated and check for accuracy against a chosen benchmark.
-Seriealization of re-sampled surface into csv is demonstrated in https://github.com/frannuca/qsabr/blob/main/qrirvol_tests/sabr_resampling_tests.fs.
+- The construction of a volatility surface and its calibration is demonstrated in  https://github.com/frannuca/qsabr/blob/main/qrirvol_tests/sabr_surface_tests.fs , where a complete surface (with various maturities and tenors) is built, calibrated and check for accuracy against a chosen benchmark.
+- Seriealization of re-sampled surface into csv is demonstrated in https://github.com/frannuca/qsabr/blob/main/qrirvol_tests/sabr_resampling_tests.fs.
+- Interpolation using total variance approach can be found in https://github.com/frannuca/qsabr/blob/main/qrirvol_tests/total_variance_interpolation_tests.fs.
  
  ## **qdata** and **qtime**
  Are work in progress intended more as placeholder for a future calendar library and data transformations.

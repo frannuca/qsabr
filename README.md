@@ -5,7 +5,7 @@ The code is based on the article "Managing the Smile" by Hagan in 2002 ( https:/
 The following projects/files are good entry points to find the most relevant logic:
 
 ## **qirvol** 
-(https://github.com/frannuca/qsabr/blob/main/volatility/sabr.fs)
+https://github.com/frannuca/qsabr/blob/main/qirvol/Program.cs
 Simple console application which accepts aa input a csv file with volatility surface data (as per the format depicted in the file https://github.com/frannuca/qsabr/blob/main/qrirvol_tests/data/volsurface.csv). 
 The program generates two files, namely:
 - one with a new interpolated vol surface and
@@ -15,9 +15,11 @@ both in csv format.
 Command line usage:
 >>./qirvol --input=<path to volsurface.csv> --output=C:/temp --resolution=1000
 
-## **volcube** 
-This project includes data structure definitions to access volatilty surfaces (https://github.com/frannuca/qsabr/blob/main/volatility/volcube.fs) and sabr coefficients cubes (https://github.com/frannuca/qsabr/blob/main/volatility/sabrcube.fs). 
- The calibration using (lognormal approximation) is part of the module SABR, more specifically the function https://github.com/frannuca/qsabr/blob/main/volatility/sabr.fs#L51, which applies BFGS-B algorithm (Broyden–Fletcher–Goldfarb–Shanno Bounded) to optimize rho and nu coefficent for a given beta and resolved alpha to match at the moment volatility for each smile. This approach shows to be stable and fast convergent.
+## **volatility** 
+This project includes data structure definitions to access volatilty surfaces and calibration algorithm for SABR coefficients, namely:
+ - (https://github.com/frannuca/qsabr/blob/main/volatility/volcube.fs) includes vol surface data structure for easy management of the smiles
+ - (https://github.com/frannuca/qsabr/blob/main/volatility/sabrcube.fs) is the data class to manage SABR coefficient cubes.
+ - The calibration using (lognormal approximation) is part of the module SABR, more specifically the function https://github.com/frannuca/qsabr/blob/main/volatility/sabr.fs#L51, which applies BFGS-B algorithm (Broyden–Fletcher–Goldfarb–Shanno Bounded) to optimize rho and nu coefficent for a given beta and resolved alpha to match at the moment volatility for each smile. This approach shows to be stable and fast convergent.
 
  Lastly the module SABRInterpolator (https://github.com/frannuca/qsabr/blob/main/volatility/sabrinterpolator.fs#L13) includes various functions to re-sample the original volutility surface to higher strike resolutions.
  

@@ -17,6 +17,7 @@ Command line usage:
 
 ## **volatility** 
 This project includes data structure definitions to access volatilty surfaces and calibration algorithm for SABR coefficients, namely:
+ - (https://github.com/frannuca/qsabr/blob/main/volatility/basecube.fs) base cube data class to be inherited for specific serialization into csv. Mainly vol and sabr coefficients share a similar cube structure which is shared across using this base class.
  - (https://github.com/frannuca/qsabr/blob/main/volatility/volcube.fs) includes vol surface data structure for easy management of the smiles
  - (https://github.com/frannuca/qsabr/blob/main/volatility/sabrcube.fs) is the data class to manage SABR coefficient cubes.
  - The calibration using (lognormal approximation) is part of the module SABR, more specifically the function https://github.com/frannuca/qsabr/blob/main/volatility/sabr.fs#L51, which applies BFGS-B algorithm (Broyden–Fletcher–Goldfarb–Shanno Bounded) to optimize rho and nu coefficent for a given beta and resolved alpha to match at the moment volatility for each smile. This approach shows to be stable and fast convergent.

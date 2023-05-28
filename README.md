@@ -13,7 +13,8 @@ The program generates two files, namely:
 both in csv format.
 
 Command line usage:
->>./qirvol --input=<path to volsurface.csv> --output=C:/temp --resolution=1000
+>>./qirvol --input= path to volsurface.csv --output=C:/temp --resolution=1000
+>>./qirvol --help
 
 ## **volatility** 
 This project includes data structure definitions to access volatilty surfaces and calibration algorithm for SABR coefficients, namely:

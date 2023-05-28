@@ -14,6 +14,7 @@ both in csv format.
 
 Command line usage:
 >>./qirvol --input= path to volsurface.csv --output=C:/temp --resolution=1000
+
 >>./qirvol --help
 
 ## **volatility** 

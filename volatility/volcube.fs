@@ -3,10 +3,34 @@
 open System
 open System.Collections.Immutable
 open qirvol.qtime
+open Deedle
 
 ///Volatility data structure to identify a single point in the volatility surface. 
 ///i.e: maturity, tenor, strike and vol surface point.
 type VolPillar = {tenor:int<month>;strike:float;maturity:float<year>;volatility:float;forwardrate:float;}
+type SurfaceCsvColumns=
+    |Tenor
+    |Expiry
+    |Fwd
+    |Strike
+    |Vol
+    with
+    override self.ToString()=
+        match self with
+        |Tenor -> "Tenor"
+        |Expiry -> "Expiry"
+        |Fwd -> "Fwd"
+        |Strike -> "Strike"
+        |Vol -> "Vol"
+
+    static member FromString(x)=
+        match x with
+        |"Tenor" -> Tenor
+        |"Expiry" -> Expiry
+        |"Fwd" -> Fwd
+        |"Strike" -> Strike
+        |"Vol" -> Vol
+        |_ -> failwith $"Unknown surface column name {x}"
 
 
 ///Volatility cube class.
@@ -15,20 +39,50 @@ type VolSurface(cube:Map<float<year>,Map<int<month>,VolPillar array>>)=
     
     inherit BaseSabrCube<VolPillar>(cube)
     ///Maturities expressed in days. Day unit allows to use int keys for maturities with a resolution of 1day.    
-    
-    /// Serializes into csv the vol sureface
-    override self.to_csv(filepath:string)=
-        use file=new System.IO.StreamWriter(filepath)
-        file.WriteLine("Tenor,Expiry,Fwd,Strike,Vol")
-        self.Cube
-        |> Map.iter(fun texp_days frame ->
-                             let texp = float(texp_days)*1.0<day>*timeconversions.days2year
-                             frame
-                             |> Map.iter(fun tenor  pillars ->
-                                            pillars
-                                            |> Array.iter(fun pillar ->
-                                                            file.WriteLine($"{float tenor/timeconversions.years2months},{texp},{pillar.forwardrate},{pillar.strike},{pillar.volatility}")))
-        )
+    //Tenor,Expiry,Fwd,Strike,Vol
+    /// Serializes into csv the vol sureface    
+    override self.to_csv(filepath:string)=        
+        let frame = cube
+                    |>Seq.map(fun kv -> let texp=kv.Key
+                                        let tenorframe = kv.Value
+                                        tenorframe
+                                        |>Seq.map(fun kv2->
+                                                    let tenor=kv2.Key
+                                                    let pillars=kv2.Value
+                                                    pillars |>
+                                                    Seq.map(fun p -> [SurfaceCsvColumns.Tenor.ToString(),float(p.tenor);
+                                                                      SurfaceCsvColumns.Expiry.ToString(),float(p.maturity);
+                                                                      SurfaceCsvColumns.Fwd.ToString(),p.forwardrate*1e4;
+                                                                      SurfaceCsvColumns.Strike.ToString(),p.strike*1e4;
+                                                                      SurfaceCsvColumns.Vol.ToString(),p.volatility*100.0]
+                                                                      |>Series.ofObservations)
+
+                                        )|> Seq.concat
+                    )|> Seq.concat|>Seq.mapi(fun i x -> i,x)|>Frame.ofRows
+
+             
+        frame.SaveCsv(path=filepath,separator=',',culture= System.Globalization.CultureInfo.InvariantCulture)
+                   
+
+    //Factory method from file in csv format builds the associated VolSurface object
+    static member from_csv(filepath:string):VolSurface=
+        let us = "en-US"       
+        let frame= Frame.ReadCsv(path=filepath,hasHeaders=true,separators=",",culture="")
+        let cube = frame
+                    |>Frame.mapRowValues(fun series -> {VolPillar.maturity=series.GetAs<float>(SurfaceCsvColumns.Expiry.ToString())*1.0<year>;
+                                                        VolPillar.tenor=series.GetAs<int>(SurfaceCsvColumns.Tenor.ToString())*1<month>;
+                                                        VolPillar.forwardrate=series.GetAs<float>(SurfaceCsvColumns.Fwd.ToString())*1e-4
+                                                        VolPillar.strike=series.GetAs<double>(SurfaceCsvColumns.Strike.ToString())*1e-4;
+                                                        VolPillar.volatility=series.GetAs<float>(SurfaceCsvColumns.Vol.ToString())*1e-2
+
+                    })|> Series.values
+                    |> Seq.groupBy(fun x -> x.maturity)
+                    |> Map.ofSeq
+                    |> Map.map(fun _ frame -> frame |> Array.ofSeq |>Array.groupBy(fun y -> y.tenor) |> Map.ofSeq)
+
+        
+
+        VolSurface(cube)
                 
 
 ///Helper vol surface builder.

@@ -19,6 +19,9 @@
     <PackageReference Include="Accord.Math" Version="3.8.0">
       <GeneratePathProperty></GeneratePathProperty>
     </PackageReference>
+    <PackageReference Include="Deedle" Version="3.0.0">
+      <GeneratePathProperty></GeneratePathProperty>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\qtime\qtime.fsproj" />

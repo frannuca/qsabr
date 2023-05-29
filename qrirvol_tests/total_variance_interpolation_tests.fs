@@ -19,14 +19,11 @@ type Testing_total_variance_SABR()=
         let beta=0.5
         
         //Reading pillars from file ..
-        let volpillars = SABRInterpolator.get_surface_from_csv("./data/volsurface.csv")
-
-        // Generation of the surface data 
-        let surface = VolSurfaceBuilder().withPillars(volpillars).Build()
-
+        let surface = VolSurface.from_csv("./data/input_volsurface.csv")
+       
         //getting the smile for a known maturity and tenor
         let Tknown = 10.0<year>
-        let tenor= 5*12<month>
+        let tenor= 30<month>
        
         //calibration of the smile at the given maturity and tenor
         let expected_coeff= SABR.sigma_calibrate(surface,10.0,0.2,beta).[Tknown].[tenor].[0]
@@ -34,8 +31,8 @@ type Testing_total_variance_SABR()=
         let expected_interpolator =  SABR.Sigma_SABR_Smile(expected_coeff)
 
         //here we create the total variance interpolator which should be exactely the same as the calibrated smile above
-        let tinterpolator = SABRInterpolator.SABRInterpolator_Total_Variance(surface,0.5)
-        let computed_interpolator = tinterpolator.Smile(10.0<year>,5*12<month>)
+        let tinterpolator = SABRInterpolator.SABRInterpolator_Total_Variance(surface,beta)
+        let computed_interpolator = tinterpolator.Smile(Tknown,tenor)
 
         let fwd = computed_interpolator.f
 
@@ -60,16 +57,13 @@ type Testing_total_variance_SABR()=
         let beta=0.5
         
         //Reading pillars from file ..
-        let volpillars = SABRInterpolator.get_surface_from_csv("./data/volsurface.csv")
-
-        // Generation of the surface data 
-        let surface = VolSurfaceBuilder().withPillars(volpillars).Build()
-
+        let surface = VolSurface.from_csv("./data/input_volsurface.csv")
+       
         //getting the smile for a known maturity and tenor
         let T15y = 15.0<year>
         let T17y = 17.0<year>
         let T25y = 25.0<year>
-        let tenor= 5*12<month>
+        let tenor= 30<month>
        
         
         

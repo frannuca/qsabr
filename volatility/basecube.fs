@@ -35,5 +35,4 @@ type BaseSabrCube<'T>(cube:Map<float<year>,Map<int<month>,'T array>>)=
     member self.Cube_Ty  with get()= cube_years
     //Writes the coefficents cube to csv file.
     abstract member to_csv: string -> unit
-       
-
+    

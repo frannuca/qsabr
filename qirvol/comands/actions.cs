@@ -34,11 +34,8 @@ namespace qirvol.comands
         {
 
             //Reading pillars from file ..
-            var volpillars = SABRInterpolator.get_surface_from_csv(Input);
-
-            // Generation of the surface data ...
-            var surface = new VolSurfaceBuilder().withPillars(volpillars).Build();
-
+            var surface = VolSurface.from_csv(Input);
+            
 
             // Resampling the surface with 1000  strike samples
             var (resampled_surface, sabrcube) = SABRInterpolator.get_cube_coeff_and_resampled_volsurface(surface, 0.5, -150.0, 150.0, 1000);

@@ -6,6 +6,7 @@ open qirvol.volatility
 open qirvol.qtime
 open qirvol.qtime.timeconversions
 open MathNet.Numerics.LinearAlgebra
+open qirvol.volatility.SABR
 
 type Testing_Surface_SABR()=                 
     [<Fact>]
@@ -18,27 +19,56 @@ type Testing_Surface_SABR()=
 
         
         //Reading pillars from file ..
-        let volpillars = SABRInterpolator.get_surface_from_csv("./data/volsurface.csv")
+        let volpillars = SABRInterpolator.get_surface_from_csv("./data/input_volsurface.csv")
 
         // Generation of the surface data ...
         let surface = VolSurfaceBuilder().withPillars(volpillars).Build()
 
 
+        let nstrikes=50
+        let beta=0.5
+        let minStrikeSpread = -150.0
+        let maxStrikeSpread = 50.0
+
         // Resampling the surface with 1000  strike samples
-        let resampled_surface,sabrcube = SABRInterpolator.get_cube_coeff_and_resampled_volsurface(surface,0.5,-150.0,150.0,1000)
+        let computed_resampled_surface,computed_sabrcube = SABRInterpolator.get_cube_coeff_and_resampled_volsurface(surface,beta,minStrikeSpread,maxStrikeSpread,nstrikes)
 
+        computed_resampled_surface.to_csv("./data/output_resampled.csv")
+        computed_sabrcube.to_csv("./data/output_sabrcube.csv")
+        //getting expected results:
+        let expected_surface = VolSurface.from_csv("./data/output_resampled.csv")
+        let expected_sabr = SabrCube.from_csv("./data/output_sabrcube.csv")
 
-        //Serializing to disk
-        resampled_surface.to_csv("./data/resampled_1000.csv")
-        sabrcube.to_csv("./data/sabrcube.csv")
+        //Checks on surface maturities
+        Assert.Equal(computed_resampled_surface.maturities.Length,expected_surface.maturities.Length)
+        computed_resampled_surface.maturities|>Array.iteri(fun i m -> Assert.Equal(m,expected_surface.maturities.[i]))
 
-        //Recovering the vol surface back:
-        let surface_from_disk = VolSurfaceBuilder().withPillars(SABRInterpolator.get_surface_from_csv("./data/resampled_1000.csv")).Build()
+        computed_resampled_surface.Cube_Ty
+        |> Map.iter(fun (t:float<year>) (frame:Map<int<month>,VolPillar array>) ->
+                            frame
+                            |> Map.iter(fun tenor  pillars ->
+                                            let epillars = expected_surface.Cube_Ty.[t].[tenor]
+                                            (pillars,epillars) ||> Array.iter2(fun a b ->
+                                                                        Assert.Equal(a.forwardrate,b.forwardrate,2)
+                                                                        Assert.Equal(a.strike,b.strike,2)
+                                                                        Assert.Equal(int a.tenor,int b.tenor)
+                                                                        Assert.Equal(float a.maturity,float b.maturity,1)
+                                            )
+                            ))
 
-        Assert.Equal(surface_from_disk.maturities.Length,resampled_surface.maturities.Length)
+        computed_sabrcube.Cube_Ty
+        |> Map.iter(fun (t:float<year>) (frame:Map<int<month>,SABRSolu array>) ->
+                            frame
+                            |> Map.iter(fun tenor  pillars ->
+                                            let epillars = expected_sabr.Cube_Ty.[t].[tenor]
+                                            (pillars,epillars) ||> Array.iter2(fun a b ->
+                                                                        Assert.Equal(a.alpha,b.alpha,2)
+                                                                        Assert.Equal(a.beta,b.beta,2)
+                                                                        Assert.Equal(a.nu,b.nu,2)
+                                                                        Assert.Equal(a.rho,b.rho,2)
+                                                                        Assert.Equal(int a.tenor,int b.tenor)
+                                                                        Assert.Equal(float a.texp,float b.texp,1)
+                                            )
+                            ))
 
-        //Checking one smile volatilility values.
-        let expected_smile,computed_smile = (surface_from_disk.Smile(2.0<year>,24<month>),resampled_surface.Smile(2.0<year>,24<month>))
-        (expected_smile,computed_smile) ||> Array.iter2(fun a b -> Assert.Equal(a.volatility,b.volatility))
-            
         0.0

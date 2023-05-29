@@ -54,7 +54,7 @@ type SabrCube(cube:Map<float<year>,Map<int<month>,SABRSolu array>>)=
                                                       let tenor=kv2.Key
                                                       let pillars=kv2.Value
                                                       pillars |>
-                                                      Seq.map(fun p -> [SABRCsvColumns.Tenor,float(p.tenor);
+                                                      Seq.map(fun p -> [SABRCsvColumns.Tenor,float(p.tenor)/12.0;
                                                                         SABRCsvColumns.Expiry,float(p.texp);
                                                                         SABRCsvColumns.Fwd,float(p.f)*1e4;
                                                                         SABRCsvColumns.Alpha,float(p.alpha);
@@ -76,7 +76,7 @@ type SabrCube(cube:Map<float<year>,Map<int<month>,SABRSolu array>>)=
       static member from_csv(filepath:string):SabrCube=
           let frame= Frame.ReadCsv(path=filepath)
           let cube = frame
-                      |>Frame.mapRowValues(fun series -> {SABRSolu.tenor=series.GetAs<int>(SABRCsvColumns.Tenor.ToString())*1<month>;
+                      |>Frame.mapRowValues(fun series -> {SABRSolu.tenor=series.GetAs<int>(SABRCsvColumns.Tenor.ToString())*12<month>;
                                                           SABRSolu.texp=series.GetAs<float>(SABRCsvColumns.Expiry.ToString())*1.0<year>;
                                                           SABRSolu.f=series.GetAs<float>(SABRCsvColumns.Fwd.ToString())*1e-4
                                                           SABRSolu.alpha=series.GetAs<float>(SABRCsvColumns.Alpha.ToString());

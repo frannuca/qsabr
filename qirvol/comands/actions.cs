@@ -5,8 +5,7 @@ using System.Windows.Input;
 using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
-using CsvHelper.Configuration.Attributes;
-using qdata.csvextractor;
+using qirvol;
 using qirvol.volatility;
 
 namespace qirvol.comands
@@ -22,10 +21,10 @@ namespace qirvol.comands
     public class CVolSurfaceData : ICommand
     {
         [Option('i', "input", Required = true, HelpText = "Path to the file including vol surface data")]
-        public string Input { get; set; }
+        public string? Input { get; set; }
 
         [Option('o', "output", Required = true, HelpText = "Path to the output folder where to serialize the results")]
-        public string Output { get; set; }
+        public string? Output { get; set; }
 
         [Option('r', "resolution", Required = true, HelpText = "number of strikes to compute")]
         public int NStrikes { get; set; }

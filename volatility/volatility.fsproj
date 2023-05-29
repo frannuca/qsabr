@@ -25,6 +25,5 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\qtime\qtime.fsproj" />
-    <ProjectReference Include="..\qdata\qdata.csproj" />
   </ItemGroup>
 </Project>

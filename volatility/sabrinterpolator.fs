@@ -11,20 +11,7 @@ open MathNet.Numerics.LinearAlgebra
 open MathNet.Numerics.LinearAlgebra.Double;
 
 module SABRInterpolator=
-    open qdata.csvextractor    
-
-    ///Loads a csv file with volatility surface data and generates the corresponding array of Volatility pillars.
-    ///inputs csv and returns VolPillar[]
-    ///This function can be used in comp
-    let get_surface_from_csv(path2file:string)=
-        VolSurfaceCsvHelper.ExtractSurface(path2file)
-        |> Array.ofSeq
-        |> Array.map(fun pillar -> {forwardrate=pillar.Fwd;
-                                  maturity=pillar.Expiry*1.0<year>;
-                                  tenor= int(pillar.Tenor*qtime.timeconversions.years2months)*1<month>;
-                                  volatility=pillar.Vol;
-                                  strike=pillar.Strike})
-        
+           
 
     ///Given an existing volatility surface it re-samples the strike for all the smiles as per user specification.
     ///This method re-alibrates the surface to obtained the relevant SABR cube.

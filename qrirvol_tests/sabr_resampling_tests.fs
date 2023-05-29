@@ -8,33 +8,30 @@ open qirvol.qtime.timeconversions
 open MathNet.Numerics.LinearAlgebra
 open qirvol.volatility.SABR
 
-type Testing_Surface_SABR()=                 
+type Testing_Surface_SABR()=
     [<Fact>]
     let ``File operations checks`` () =
         (**
             Reads vol surface from csv, calibrates SABR and resamples in strike.
-            The new surface is serialized back to drive and re-read again to check that original
-            and recovered are the same.
+            The recalibrated surface and SABR paramters are compared with respect to a benchmark.
         **)
 
-        
-        //Reading pillars from file ..
-        let volpillars = SABRInterpolator.get_surface_from_csv("./data/input_volsurface.csv")
-
-        // Generation of the surface data ...
-        let surface = VolSurfaceBuilder().withPillars(volpillars).Build()
-
+                
+        // Generation of the surface data from input file ...
+        let surface = VolSurface.from_csv("./data/input_volsurface.csv")
 
         let nstrikes=50
         let beta=0.5
         let minStrikeSpread = -150.0
-        let maxStrikeSpread = 50.0
+        let maxStrikeSpread = 150.0
 
         // Resampling the surface with 1000  strike samples
-        let computed_resampled_surface,computed_sabrcube = SABRInterpolator.get_cube_coeff_and_resampled_volsurface(surface,beta,minStrikeSpread,maxStrikeSpread,nstrikes)
+        let computed_resampled_surface,computed_sabrcube =
+            SABRInterpolator.get_cube_coeff_and_resampled_volsurface(surface,beta,minStrikeSpread,maxStrikeSpread,nstrikes)
 
-        computed_resampled_surface.to_csv("./data/output_resampled.csv")
-        computed_sabrcube.to_csv("./data/output_sabrcube.csv")
+        //computed_resampled_surface.to_csv("/Users/fran/code/qsabr/qrirvol_tests/data/output_resampled.csv")
+        //computed_sabrcube.to_csv("/Users/fran/code/qsabr/qrirvol_tests/data/output_sabrcube.csv")
+
         //getting expected results:
         let expected_surface = VolSurface.from_csv("./data/output_resampled.csv")
         let expected_sabr = SabrCube.from_csv("./data/output_sabrcube.csv")

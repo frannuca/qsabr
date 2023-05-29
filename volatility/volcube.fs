@@ -35,8 +35,7 @@ type SurfaceCsvColumns=
 
 ///Volatility cube class.
 ///The ctor. requires an array of VolPillars (or surface points)
-type VolSurface(cube:Map<float<year>,Map<int<month>,VolPillar array>>)=
-    
+type VolSurface(cube:Map<float<year>,Map<int<month>,VolPillar array>>)=    
     inherit BaseSabrCube<VolPillar>(cube)
     ///Maturities expressed in days. Day unit allows to use int keys for maturities with a resolution of 1day.    
     //Tenor,Expiry,Fwd,Strike,Vol
@@ -50,7 +49,7 @@ type VolSurface(cube:Map<float<year>,Map<int<month>,VolPillar array>>)=
                                                     let tenor=kv2.Key
                                                     let pillars=kv2.Value
                                                     pillars |>
-                                                    Seq.map(fun p -> [SurfaceCsvColumns.Tenor.ToString(),float(p.tenor);
+                                                    Seq.map(fun p -> [SurfaceCsvColumns.Tenor.ToString(),float(p.tenor)/12.0;
                                                                       SurfaceCsvColumns.Expiry.ToString(),float(p.maturity);
                                                                       SurfaceCsvColumns.Fwd.ToString(),p.forwardrate*1e4;
                                                                       SurfaceCsvColumns.Strike.ToString(),p.strike*1e4;
@@ -70,7 +69,7 @@ type VolSurface(cube:Map<float<year>,Map<int<month>,VolPillar array>>)=
         let frame= Frame.ReadCsv(path=filepath,hasHeaders=true,separators=",",culture="")
         let cube = frame
                     |>Frame.mapRowValues(fun series -> {VolPillar.maturity=series.GetAs<float>(SurfaceCsvColumns.Expiry.ToString())*1.0<year>;
-                                                        VolPillar.tenor=series.GetAs<int>(SurfaceCsvColumns.Tenor.ToString())*1<month>;
+                                                        VolPillar.tenor=series.GetAs<int>(SurfaceCsvColumns.Tenor.ToString())*12<month>;
                                                         VolPillar.forwardrate=series.GetAs<float>(SurfaceCsvColumns.Fwd.ToString())*1e-4
                                                         VolPillar.strike=series.GetAs<double>(SurfaceCsvColumns.Strike.ToString())*1e-4;
                                                         VolPillar.volatility=series.GetAs<float>(SurfaceCsvColumns.Vol.ToString())*1e-2

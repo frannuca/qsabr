@@ -23,6 +23,7 @@ public class VolSurfaceCsv
 }
 static public class VolSurfaceCsvHelper
 {
+    [Obsolete("Use read_from from VolSurface object")]
     static public VolSurfaceCsv[] ExtractSurface(string csvfilepath)
     {
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)

@@ -23,7 +23,7 @@ type Testing_total_variance_SABR()=
        
         //getting the smile for a known maturity and tenor
         let Tknown = 10.0<year>
-        let tenor= 30<month>
+        let tenor= 24<month>
        
         //calibration of the smile at the given maturity and tenor
         let expected_coeff= SABR.sigma_calibrate(surface,10.0,0.2,beta).[Tknown].[tenor].[0]
@@ -63,7 +63,7 @@ type Testing_total_variance_SABR()=
         let T15y = 15.0<year>
         let T17y = 17.0<year>
         let T25y = 25.0<year>
-        let tenor= 30<month>
+        let tenor= 24<month>
        
         
         

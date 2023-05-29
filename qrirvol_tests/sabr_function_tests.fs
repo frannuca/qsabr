@@ -14,7 +14,7 @@ type Testing_Funtion_SABR()=
     [<Fact>]
     let ``Cubic root finder for selected atm SABR solver must match`` () =
         (**
-            The alpha parameters is not really optimized, but rather for each
+            The alpha parameter is not really optimized, but rather for each
             nu and rho we resolve the ATM black volatitily as the solution
             of a polynome of order 3 which guarantees at least one real solution.
             This test checks that the alpha is really the solution to recover

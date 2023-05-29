@@ -34,13 +34,13 @@
     <ProjectReference Include="..\volatility\volatility.fsproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="data\output_sabrcube.csv" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="data\input_volsurface.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="data\output_resampled.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\output_sabrcube.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

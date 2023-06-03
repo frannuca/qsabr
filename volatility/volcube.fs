@@ -69,7 +69,7 @@ type VolSurface(cube:Map<float<year>,Map<int<month>,VolPillar array>>)=
         let frame= Frame.ReadCsv(path=filepath,hasHeaders=true,separators=",",culture="")
         let cube = frame
                     |>Frame.mapRowValues(fun series -> {VolPillar.maturity=series.GetAs<float>(SurfaceCsvColumns.Expiry.ToString())*1.0<year>;
-                                                        VolPillar.tenor=series.GetAs<int>(SurfaceCsvColumns.Tenor.ToString())*12<month>;
+                                                        VolPillar.tenor= int(series.GetAs<float>(SurfaceCsvColumns.Tenor.ToString())*12.0)*1<month>;
                                                         VolPillar.forwardrate=series.GetAs<float>(SurfaceCsvColumns.Fwd.ToString())*1e-4
                                                         VolPillar.strike=series.GetAs<double>(SurfaceCsvColumns.Strike.ToString())*1e-4;
                                                         VolPillar.volatility=series.GetAs<float>(SurfaceCsvColumns.Vol.ToString())*1e-2

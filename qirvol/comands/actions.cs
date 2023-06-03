@@ -26,22 +26,43 @@ namespace qirvol.comands
         [Option('o', "output", Required = true, HelpText = "Path to the output folder where to serialize the results")]
         public string? Output { get; set; }
 
-        [Option('r', "resolution", Required = true, HelpText = "number of strikes to compute")]
-        public int NStrikes { get; set; }
+        [Option('T', "maturity", Required = true, HelpText = "maturity in years where to compute the smile")]
+        public float Expiry { get; set; }
+
+        [Option('t', "tenor", Required = true, HelpText = "Tenor in months where to compute the smile")]
+        public int Tenor { get; set; }
+
+        [Option('b', "beta", Required = true, HelpText = "Beta coefficient")]
+        public float Beta { get; set; }
+
+        [Option('l', "low_moneyness", Required = true, HelpText = "i.e. 20% is express are 0.8")]
+        public float Low_moneyness { get; set; }
+
+        [Option('h', "high_moneyness", Required = true, HelpText = "i.e. 20% is express are 1.2")]
+        public float High_moneyness { get; set; }
+
+
+        [Option('f', "forward", Required = true, HelpText = "forward spot value")]
+        public float Fwd { get; set; }
+
+        [Option('r', "resolution", Required = true, HelpText = "Number of strikes in the provided moneyness range")]
+        public int Resolution { get; set; }
+
+
 
         public void Execute()
         {
 
             //Reading pillars from file ..
             var surface = VolSurface.from_csv(Input);
-            
+            var interpolator = new SABRInterpolator.SurfaceInterpolator(surface, Beta );
+            var logK_f = Enumerable.Range(0, Resolution)
+                            .Select(n => Low_moneyness + (High_moneyness - Low_moneyness) * n / (Resolution - 1))
+                            .Select(x => Math.Log(x));
+            var smile = interpolator.get_smile(Expiry, Tenor, logK_f.ToArray(), Fwd);
 
-            // Resampling the surface with 1000  strike samples
-            var (resampled_surface, sabrcube) = SABRInterpolator.get_cube_coeff_and_resampled_volsurface(surface, 0.5, -150.0, 150.0, 1000);
-
-
-            resampled_surface.to_csv(System.IO.Path.Join(this.Output ,"resampled_300.csv"));
-            sabrcube.to_csv(System.IO.Path.Join(this.Output,"sabrcube.csv"));
+            smile.to_csv(Output);
+            interpolator.SABRCube.to_csv(Output.Replace(".csv", "sabr.csv"));
 
         }
     }

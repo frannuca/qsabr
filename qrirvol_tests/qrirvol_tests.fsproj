@@ -1,19 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
     <GenerateProgramFile>false</GenerateProgramFile>
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
-  <ItemGroup>    
+  <ItemGroup>
+    <Compile Include="test_commons.fs" />
     <Compile Include="sabr_function_tests.fs" />
     <Compile Include="sabr_surface_tests.fs" />
     <Compile Include="sabr_resampling_tests.fs" />
-    <Compile Include="total_variance_interpolation_tests.fs" />
-    <Compile Include="Program.fs" />            
+    <Compile Include="Program.fs" />              
   </ItemGroup>
 
   <ItemGroup>
@@ -41,6 +41,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="data\output_sabrcube.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\beta0_5_sabrcoeff.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

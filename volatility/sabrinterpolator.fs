@@ -13,80 +13,131 @@ open MathNet.Numerics.LinearAlgebra.Double;
 module SABRInterpolator=
            
 
-    ///Given an existing volatility surface it re-samples the strike for all the smiles as per user specification.
-    ///This method re-alibrates the surface to obtained the relevant SABR cube.
-    ///Params:
-    /// cube: volatility surface
-    /// beta: SABR exponent coefficient
-    /// minStrikeSpread: lower values from which the strike will start (as the spread with respect to the forward)
-    /// maxStrikeSpread: upper values from which the strike will end (as the spread with respect to the forward)
-    let  get_cube_coeff_and_resampled_volsurface(cube:VolSurface,beta:float,minStrikeSpread:float,maxStrikeSpread:float,nstrikes:int)=                
-        
-            let surface = SABR.sigma_calibrate(cube,10.0,0.2,beta)
+    type SurfaceInterpolator(surface:VolSurface,beta:float)=
+        let cube = SabrCube(SABR.sigma_calibrate(surface,10.0,0.2,beta))
+
+        let rec binary_search(lo:int,hi:int,x:float,arr:float array,tol:float)=
+            if arr.Length=0 then invalidArg (nameof arr) $" Array must include at least two for binary search"
+            else if arr.Length=1 && Math.Abs(x-arr.[0])>tol then invalidArg (nameof arr) $" Array must include at least two for binary search"
+            else if arr.Length=1 && Math.Abs(x-arr.[0])<=tol then (lo,lo)
+            else if x < arr.[0] then (lo,lo+1)
+            else if x> arr.[arr.Length-1] then (arr.Length-2,arr.Length-1)
+            else
+                match (lo,hi) with        
+                |(i,j) when (j-i)=1 || i=j -> (i,j)
+                |(i,j) when i>j -> failwith "Wrong indexing. Should not reach here."
+                |_ -> let mid= float(lo+hi)*0.5 |> int
+                      let xmid=arr.[mid]
+                      if Math.Abs(xmid-x)<tol then (mid,mid)
+                      elif xmid>x then binary_search(lo,mid,x,arr,tol)
+                      else  binary_search(mid,hi,x,arr,tol)
+
+        let interpolate_in_tenors(T:float<year>,tenor:int<month>,k:float)=
+            let tenors = surface.tenors_by_maturity(T) |> Array.ofSeq 
+            let itenor_lo,itenor_hi = binary_search(0,tenors.Length,float tenor,tenors|> Array.map(float),0.5)
+            let ten_lo = tenors.[itenor_lo]
+            let ten_hi = tenors.[itenor_hi]
+
+            let params_tenorlo = cube.Smile(T,tenors.[itenor_lo]).[0]
+            let params_tenorhi = cube.Smile(T,tenors.[itenor_hi]).[0]
+            let v_lo = SABR.Sigma_SABR(params_tenorlo.alpha,params_tenorlo.beta,params_tenorlo.nu,T,params_tenorlo.rho,k,params_tenorlo.f)
+            let v_hi = SABR.Sigma_SABR(params_tenorhi.alpha,params_tenorhi.beta,params_tenorhi.nu,T,params_tenorhi.rho,k,params_tenorhi.f)
+
+            if itenor_lo=itenor_hi then
+                v_hi
+            else
+                v_lo+(v_hi-v_lo)/float (ten_hi - ten_lo) * float (tenor - ten_lo)
+
+        let interpolate_in_tenors_moneyness(T:float<year>,tenor:int<month>,logf_k:float)=
+            let tenors = surface.tenors_by_maturity(T) |> Array.ofSeq 
+            let itenor_lo,itenor_hi = binary_search(0,tenors.Length,float tenor,tenors|> Array.map(float),0.5)
+            let ten_lo = tenors.[itenor_lo]
+            let ten_hi = tenors.[itenor_hi]
+
             
-            let strikes_bps = [|0 .. nstrikes-1|]
-                                |> Array.map(fun n -> float n/(float nstrikes-1.0)*(maxStrikeSpread - minStrikeSpread) + minStrikeSpread)
-            let res=
-                    surface            
-                    |>Map.map(fun t tenorframe ->
-                                       tenorframe
-                                       |>  Map.map(fun tenor paramarr ->
-                                               let param= paramarr |> Array.last
-                                               strikes_bps
-                                               |> Array.map(fun dk ->                                                                    
-                                                                      let v = SABR.Sigma_SABR(param.alpha,param.beta,param.nu,param.texp,param.rho,param.f+dk*1e-4,param.f)                                                              
-                                                                      {VolPillar.forwardrate=param.f;VolPillar.maturity=t;VolPillar.strike=param.f+dk*1e-4;VolPillar.tenor=tenor;VolPillar.volatility=v}
-                                                                      )))
+            let params_tenorlo = cube.Smile(T,tenors.[itenor_lo]).[0]
+            let params_tenorhi = cube.Smile(T,tenors.[itenor_hi]).[0]
+            let k_low=params_tenorlo.f/Math.Exp(logf_k)
+            let k_hi=params_tenorhi.f/Math.Exp(logf_k)
 
-            VolSurfaceBuilder().withMap(res).Build(),SabrCube(surface)
+            let v_lo = SABR.Sigma_SABR(params_tenorlo.alpha,params_tenorlo.beta,params_tenorlo.nu,T,params_tenorlo.rho,k_low,params_tenorlo.f)
+            let v_hi = SABR.Sigma_SABR(params_tenorhi.alpha,params_tenorhi.beta,params_tenorhi.nu,T,params_tenorhi.rho,k_hi,params_tenorhi.f)
 
-    let inline tofloat x = float x
-    let rec binary_search<'T >(lo:int,hi:int,x:float,arr:float array,tol:float)=        
-        match (lo,hi) with        
-        |(i,j) when (j-i)=1 || i=j -> (i,j)
-        |(i,j) when i>j -> failwith "Wrong indexing. Should not reach here."
-        |_ -> let mid= float(lo+hi)*0.5 |> int
-              let xmid=arr.[mid]
-              if Math.Abs(xmid-x)<tol then (mid,mid)
-              elif xmid>x then binary_search(lo,mid,x,arr,tol)
-              else  binary_search(mid,hi,x,arr,tol)
+            if itenor_lo=itenor_hi then
+                v_hi
+            else
+                v_lo+(v_hi-v_lo)/float (ten_hi - ten_lo) * float (tenor - ten_lo)
 
-
-
-
-    //Record holding a smile interpolation function for a given tenor and maturity.
-    type SmileInterpolator={
-                            f:float; //Forward on which the smile was calibrated
-                            fsmile:float->float //function strike to volatility
-    }
-    
-    type SABRInterpolator_Total_Variance(surface:VolSurface,beta)=
-        let cube = SABR.sigma_calibrate(surface,10.0,0.2,beta)
-        let maturities =  cube.Keys |> Array.ofSeq |> Array.map(float)
-
-        (**
-            Interpolates the SABR volatility for the given maturity using total variance interpolation.
-            The tenor provided must be part of the surface, otherwise the function throws.
-            Interpolation taken from: (Eq 21) https://www.iasonltd.com/doc/old_rps/2007/2013_The_implied_volatility_surfaces.pdf
-        **)              
-        member self.Smile(texp:float<year>,tenor:int<month>)=
-
+        member self.interpolate(texp:float<year>,tenor:int<month>,k:float)=
             //locating the maturity tranche in the sabr cube
+            let maturities = surface.maturities_years |> Array.map(float)
+            
             let (lo,hi)=binary_search(0,maturities.Length-1,float texp,maturities,1.0/360.0)
             let Tlo = maturities.[lo]*1.0<year>
             let Thi = maturities.[hi]*1.0<year>
 
+            //inteporlating tenor in low maturity:
+            let v_Tlo = interpolate_in_tenors(Tlo,tenor,k)           
+            let v_Thi = interpolate_in_tenors(Thi,tenor,k)
 
-            let c_lo = cube.[Tlo].[tenor].[0]
-            let c_hi = cube.[Thi].[tenor].[0]
-
-            let fsigma_lo = SABR.Sigma_SABR_Smile(c_lo)
-            let fsigma_hi = SABR.Sigma_SABR_Smile(c_hi)
-            let T= texp
-            let interpolator strike=
-                let s2_lo = fsigma_lo(strike)**2.0
-                let s2_hi = fsigma_hi(strike)**2.0
+            if Tlo=Thi then
+                v_Tlo
+            else                 
+                let T= texp
+            
+                let s2_lo = v_Tlo**2.0
+                let s2_hi = v_Thi**2.0
                 let s2 = (T-Tlo)/(Thi-Tlo)*Thi/T*s2_hi+(Thi-T)/(Thi-Tlo)*Tlo/T*s2_lo
                 Math.Sqrt(s2)
+            
+        
+        member self.interpolate_moneyness(texp:float<year>,tenor:int<month>,logf_k:float)=
+            //locating the maturity tranche in the sabr cube
+            let maturities = surface.maturities_years |> Array.map(float)
+            
+            let (lo,hi)=binary_search(0,maturities.Length-1,float texp,maturities,1.0/360.0)
+            let Tlo = maturities.[lo]*1.0<year>
+            let Thi = maturities.[hi]*1.0<year>
 
-            {SmileInterpolator.f=c_lo.f;SmileInterpolator.fsmile=interpolator}
+            //inteporlating tenor in low maturity:
+            let v_Tlo = interpolate_in_tenors_moneyness(Tlo,tenor,logf_k)           
+            let v_Thi = interpolate_in_tenors_moneyness(Thi,tenor,logf_k)
+           
+            if Tlo = Thi then
+                v_Tlo
+            else
+                let T= texp
+            
+                let s2_lo = v_Tlo**2.0
+                let s2_hi = v_Thi**2.0
+                let s2 = (T-Tlo)/(Thi-Tlo)*Thi/T*s2_hi+(Thi-T)/(Thi-Tlo)*Tlo/T*s2_lo
+                Math.Sqrt(s2)
+            
+    
+    
+        member self.resample_surface(expiries:float<year> array,tenors:int<month> array,logf_k:float array,fwd:float)=
+            //resampling the vol surface:
+            let slogf_k = logf_k |> Array.sortDescending
+            expiries
+                |> Array.map(fun texp ->
+                                    texp,
+                                    tenors
+                                    |> Array.map(fun tenor ->
+                                                        tenor,
+                                                        slogf_k
+                                                        |> Array.map(fun log_f_k ->
+                                                                    {VolPillar.forwardrate=fwd;
+                                                                     VolPillar.maturity=texp;
+                                                                     VolPillar.strike=fwd/Math.Exp(log_f_k);
+                                                                     VolPillar.tenor=tenor;
+                                                                     VolPillar.volatility=self.interpolate_moneyness(texp,tenor,log_f_k)
+                                                                    })
+                                    ) |> Map.ofArray
+                )|>Map.ofArray
+                |> VolSurface
+
+        member self.get_smile(expirie:float<year>,tenor:int<month>,logf_k:float array,fwd:float)=
+            //resampling the vol surface:
+            self.resample_surface([|expirie|],[|tenor|],logf_k,fwd)
+
+        member self.SABRCube with get()=cube

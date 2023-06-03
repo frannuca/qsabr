@@ -50,7 +50,7 @@ module SABR=
     /// equation 2.17a
     let Sigma_SABR(alpha:float,beta:float,nu:float,texp:float<year>,rho:float,k:float,f:float)=
         if k<=0.0 || f <= 0.0 || alpha<=0.0 then
-            0.0
+            0.0        
         else if k=f then
             Sigma_SABR_ATM(alpha,beta,nu,texp,rho,f)
         else
@@ -81,8 +81,13 @@ module SABR=
     let Solve_alpha_for_ATM(sigmaATM:float,b:float,nu:float,texp:float<year>,rho:float,f:float)=
         if sigmaATM <= 0.0 || f <= 0.0   then 0.0
         else
-            let p= get_atm_coeffs(b,nu,texp,rho,f)
-            let struct (s1,s2,s3) = FindRoots.Cubic(-sigmaATM,p.[0],p.[1],p.[2])
+            let p= get_atm_coeffs(b,nu,texp,rho,f) |> Array.ofSeq
+            if Math.Abs(p.[2])<1e-6 then
+                 invalidArg (nameof b) "Beta higher than 0.5 must not use ATM alp"      
+
+            let struct (s1,s2,s3) =                   
+                        FindRoots.Cubic(-sigmaATM,p.[0],p.[1],p.[2])
+                
             [s1;s2;s3] |> Seq.filter(fun x-> Math.Abs(x.Imaginary) < 1e-9) |> Seq.map(fun x -> x.Real)|> Seq.max
 
 
@@ -101,10 +106,53 @@ module SABR=
                                     let sigma_b = p.volatility
                                     (Sigma_SABR(alpha,beta,nu,texp,rho,p.strike,f)-sigma_b)**2.0
                         )|> Array.sum       
-        //System.Console.WriteLine(error)
+        System.Console.WriteLine($"{error}->alpha={alpha},rho={rho},nu={nu}")
+        
+
         error
 
-    
+    ///Fitness function to per passed into the convex optimization algorithm to fit each smile.
+    /// This method assumes that the alpha parameters is resolved for each (nu,rho), reducing
+    /// therefore the optimization process to a 2-d problem.
+    /// Returns the error in between the target smile and the SABR approximation.
+    let private compute_fitness_with_alpha(smile:VolPillar array,beta:float,f:float) (alpha:float,rho:float,nu:float)=
+               
+        let texp = smile.[0].maturity
+       
+        let error=smile |> Array.map(fun p ->
+                                    let sigma_b = p.volatility
+                                    (Sigma_SABR(alpha,beta,nu,texp,rho,p.strike,f)-sigma_b)**2.0
+                        )|> Array.sum       
+        System.Console.WriteLine($"{error}->alpha={alpha},rho={rho},nu={nu}")
+        
+
+        error
+
+    /// Finds the optimum SABR parameters for a given target smile curve.
+    /// Beta  is required as input, assuming the model will be normal, lognormal or CIR as prior assumption.
+    let private calibrate_smile_with_alpha(smile:VolPillar array,alpha0:float,nu0:float,rho0:float,beta:float)=
+        let strikes = smile |> Array.map(fun p -> p.strike)
+        let texp=smile.[0].maturity
+        let tenor=smile.[0].tenor
+        let f=smile.[0].forwardrate
+        let fitness = compute_fitness_with_alpha(smile,beta,f)
+
+        let optfunc = System.Func<Vector<float>, float>(fun (x:Vector<float>) -> fitness(x.[0],x.[1],x.[2]))
+        let xoptfunc = System.Func<float array, float>(fun (x:float array) -> fitness(x.[0],x.[1],x.[2]))
+        let gg =   new FiniteDifferences(3, xoptfunc,1,1e-5)
+        let optgrad = fun (x:Vector<float>) -> gg.Gradient(x.ToArray()) |> Vector.Build.DenseOfArray
+        
+        let obj = ObjectiveFunction.Gradient(optfunc,System.Func<Vector<float>,Vector<float>> (optgrad))
+        let solver = new BfgsBMinimizer (1e-5, 1e-5, 1e-5, maximumIterations= 1000)
+        let lowerBound = new DenseVector([|0.001;-0.99;0.001|]);
+        let upperBound = new DenseVector([|5.0;0.99;100.001|]);
+        let initialGuess = new DenseVector([|0.05;0.1;10.0|]);
+
+        let result = solver.FindMinimum(obj, lowerBound, upperBound, initialGuess);
+        let res = result.FunctionInfoAtMinimum.Point.ToArray()
+                
+        {texp=texp;tenor=tenor;alpha=res.[0];beta=beta;nu=res.[2];rho=res.[1];f=f}
+       
     /// Finds the optimum SABR parameters for a given target smile curve.
     /// Beta  is required as input, assuming the model will be normal, lognormal or CIR as prior assumption.
     let private calibrate_smile(smile:VolPillar array,nu0:float,rho0:float,beta:float)=
@@ -122,7 +170,7 @@ module SABR=
         let obj = ObjectiveFunction.Gradient(optfunc,System.Func<Vector<float>,Vector<float>> (optgrad))
         let solver = new BfgsBMinimizer (1e-5, 1e-5, 1e-5, maximumIterations= 1000)
         let lowerBound = new DenseVector([|-0.99;0.001|]);
-        let upperBound = new DenseVector([|0.99;50.001|]);
+        let upperBound = new DenseVector([|0.99;100.001|]);
         let initialGuess = new DenseVector([|0.1;10.0|]);
 
         let result = solver.FindMinimum(obj, lowerBound, upperBound, initialGuess);
@@ -141,9 +189,17 @@ module SABR=
     /// rho0: initial correlation  guess parameter to pass to the underlying convex optimization algorithm
     /// beta: exponent paramter of the SABR model (b=0 normal, b=0.5 CIR, b=1 lognormal)
     let sigma_calibrate(volsurface:VolSurface,nu0:float,rho0:float,beta:float)=
-        volsurface.maturities
-        |> Array.map(fun texp -> let ftexp = float(texp)*1.0<day>*timeconversions.days2year
-                                 ftexp,volsurface.tenors_by_maturity(ftexp) |> Array.ofSeq
-                                 |> Array.map(fun tenor -> tenor,[|calibrate_smile(volsurface.Smile(ftexp,tenor),nu0,rho0,beta)|])|> Map.ofArray)
-                                 |>Map.ofArray
+        let alpha0 = 0.01
+        if beta<=0.5 then 
+            volsurface.maturities
+            |> Array.map(fun texp -> let ftexp = float(texp)*1.0<day>*timeconversions.days2year
+                                     ftexp,volsurface.tenors_by_maturity(ftexp) |> Array.ofSeq
+                                     |> Array.map(fun tenor -> tenor,[|calibrate_smile(volsurface.Smile(ftexp,tenor),nu0,rho0,beta)|])|> Map.ofArray)
+                                     |>Map.ofArray
+        else
+            volsurface.maturities
+            |> Array.map(fun texp -> let ftexp = float(texp)*1.0<day>*timeconversions.days2year
+                                     ftexp,volsurface.tenors_by_maturity(ftexp) |> Array.ofSeq
+                                     |> Array.map(fun tenor -> tenor,[|calibrate_smile_with_alpha(volsurface.Smile(ftexp,tenor),alpha0,nu0,rho0,beta)|])|> Map.ofArray)
+                                     |>Map.ofArray
     

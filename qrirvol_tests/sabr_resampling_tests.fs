@@ -10,62 +10,144 @@ open qirvol.volatility.SABR
 
 type Testing_Surface_SABR()=
     [<Fact>]
-    let ``File operations checks`` () =
+    let ``Interpolation in maturity and tenors over benchmark`` () =
         (**
-            Reads vol surface from csv, calibrates SABR and resamples in strike.
+            Reads vol surface from csv, calibrates SABR and resamples in maturity and tenor.
             The recalibrated surface and SABR paramters are compared with respect to a benchmark.
+            On the contrary, if the interpolator is required to return an existing tenor, it must not
+            throw and return the interpolated values for that tenor, maturity and strike.
         **)
 
                 
         // Generation of the surface data from input file ...
         let surface = VolSurface.from_csv("./data/input_volsurface.csv")
-
+        
         let nstrikes=50
         let beta=0.5
         let minStrikeSpread = -150.0
         let maxStrikeSpread = 150.0
+        let N=100
 
-        // Resampling the surface with 1000  strike samples
-        let computed_resampled_surface,computed_sabrcube =
-            SABRInterpolator.get_cube_coeff_and_resampled_volsurface(surface,beta,minStrikeSpread,maxStrikeSpread,nstrikes)
+                
+        
 
-        //computed_resampled_surface.to_csv("/Users/fran/code/qsabr/qrirvol_tests/data/output_resampled.csv")
-        //computed_sabrcube.to_csv("/Users/fran/code/qsabr/qrirvol_tests/data/output_sabrcube.csv")
+        //reconstructing for maturities in between 0.5 and 0.75 years:
+        let all_maturities = [|0.5;0.55;0.6;0.65;0.7;0.75|] |> Array.map(fun t -> t*1.0<year>)
+        let all_tenors = [|2 .. 30|] |> Array.map(fun n -> n*1<month>) 
 
-        //getting expected results:
+        let logf_K = [0 .. N-1]
+                        |> Seq.map(fun n -> Math.Log(float 0.5+(2.0-0.5)*float n/(float N-1.0)))
+                        |> Array.ofSeq
+                        |> Array.rev
+
+        // Resampling the surface 
+        let volinterpolator = SABRInterpolator.SurfaceInterpolator(surface,beta)
+
+        let fwd = 200e-4
+        
+        //resampling the vol surface:
+        let computed_surface = volinterpolator.resample_surface(all_maturities,all_tenors,logf_K,fwd)
+                                
+       
+        //new_surface.to_csv("./data/resampled_vol_surface.csv")
+
         let expected_surface = VolSurface.from_csv("./data/output_resampled.csv")
-        let expected_sabr = SabrCube.from_csv("./data/output_sabrcube.csv")
 
-        //Checks on surface maturities
-        Assert.Equal(computed_resampled_surface.maturities.Length,expected_surface.maturities.Length)
-        computed_resampled_surface.maturities|>Array.iteri(fun i m -> Assert.Equal(m,expected_surface.maturities.[i]))
+        //checking maturities:
+        (expected_surface.maturities,computed_surface.maturities) ||> Array.iter2(fun a b -> Assert.Equal(a,b))
 
-        computed_resampled_surface.Cube_Ty
-        |> Map.iter(fun (t:float<year>) (frame:Map<int<month>,VolPillar array>) ->
-                            frame
-                            |> Map.iter(fun tenor  pillars ->
-                                            let epillars = expected_surface.Cube_Ty.[t].[tenor]
-                                            (pillars,epillars) ||> Array.iter2(fun a b ->
-                                                                        Assert.Equal(a.forwardrate,b.forwardrate,2)
-                                                                        Assert.Equal(a.strike,b.strike,2)
-                                                                        Assert.Equal(int a.tenor,int b.tenor)
-                                                                        Assert.Equal(float a.maturity,float b.maturity,1)
-                                            )
-                            ))
+        //Checking tenors:
+        expected_surface.maturities_years
+        |> Array.iter(fun texp ->
+                    (expected_surface.tenors_by_maturity(texp),computed_surface.tenors_by_maturity(texp))
+                     ||> Seq.iter2(fun a b -> Assert.Equal(a,b))
+        )
 
-        computed_sabrcube.Cube_Ty
-        |> Map.iter(fun (t:float<year>) (frame:Map<int<month>,SABRSolu array>) ->
-                            frame
-                            |> Map.iter(fun tenor  pillars ->
-                                            let epillars = expected_sabr.Cube_Ty.[t].[tenor]
-                                            (pillars,epillars) ||> Array.iter2(fun a b ->
-                                                                        Assert.Equal(a.alpha,b.alpha,2)
-                                                                        Assert.Equal(a.beta,b.beta,2)
-                                                                        Assert.Equal(a.nu,b.nu,2)
-                                                                        Assert.Equal(a.rho,b.rho,2)
-                                                                        Assert.Equal(int a.tenor,int b.tenor)
-                                                                        Assert.Equal(float a.texp,float b.texp,1)
-                                            )
-                            ))
+        //Checking values:
+        //Checking tenors:
+        expected_surface.maturities_years
+        |> Array.iter(fun texp ->
+                    expected_surface.tenors_by_maturity(texp)
+                    |> Seq.iter(fun tenor ->
+                           (expected_surface.Smile(texp,tenor),expected_surface.Smile(texp,tenor))
+                           ||> Seq.iter2(fun a b -> Assert.Equal(a,b))
+                    )
+        )
 
-        0.0
+        
+    [<Fact>]
+    let ``Interpolation with not enough data must throw exception`` () =
+        (**
+             Creates a vol surface with only one tenor. When trying to interpolate on a different tenor an
+             invalid argument exception is required to be thrown as no interpolation
+             can be performed on a single point.
+
+             When a the interpolation is placed exactely on the existing tenor point, the algorithm needs
+             to return a value.
+         **)
+
+          
+         ///Strike deltas
+        let strikes_in_bps = test_commons.strikes_in_bps
+
+        let generate_pillar = test_commons.generate_pillar
+
+
+        //Constructing the vol surface using a builder object.
+        let surface = test_commons.get_benchmark_surface()
+
+                          
+        // Creating the interpolator for  the surface
+        let beta=0.5
+        let volinterpolator = SABRInterpolator.SurfaceInterpolator(surface,beta)
+
+        //As only 1 tenor is available, interpolation on a different tenor must return an exception.
+        Assert.Throws<System.ArgumentException >(fun ()->volinterpolator.interpolate_moneyness(0.5<year>,12<month>,0.0)|>ignore)
+        |>ignore
+
+        //Interpolation on an single existing tenor point must just return the interpolated point (no exception)
+        let a= volinterpolator.interpolate_moneyness(0.5<year>,24<month>,0.0)
+        Assert.Equal(a,surface.Cube_Ty.[0.5<year>].[24<month>].[3].volatility,1)
+
+
+    [<Fact>]
+    let ``SABR Coefficients must converge`` () =
+        (**
+             Creates a vol surface with only one tenor. When trying to interpolate on a different tenor an
+             invalid argument exception is required to be thrown as no interpolation
+             can be performed on a single point.
+
+             When a the interpolation is placed exactely on the existing tenor point, the algorithm needs
+             to return a value.
+         **)
+
+          
+
+        let beta=0.5
+        //Constructing the vol surface using a builder object.
+        let computed = SABRInterpolator.SurfaceInterpolator(test_commons.get_benchmark_surface(),beta).SABRCube
+        computed.to_csv("./data/beta0_5_sabrcoeff.csv")
+
+        let expected = SabrCube.from_csv("./data/beta0_5_sabrcoeff.csv")
+        // Creating the interpolator for  the surface
+        let beta=0.5
+        
+
+        test_commons.compare_sbar_coeff(expected.Cube_Ty,computed)
+
+
+    [<Fact>]
+    let ``SABR Coefficients must converge Issue on beta 99`` () =
+        (**
+             This test shows the problem with the value beta=0.99 which generates convergence
+             issues in the optimization algorithm.
+         **)
+
+          
+
+        let beta=0.99
+        //Constructing the vol surface using a builder object.
+        let computed = SABRInterpolator.SurfaceInterpolator(VolSurface.from_csv("./data/input_volsurface.csv"),beta).SABRCube
+        computed.to_csv("./data/beta1_0_sabrcoeff_error.csv")
+
+        

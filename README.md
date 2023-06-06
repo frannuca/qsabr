@@ -1,4 +1,4 @@
-# SABR calibration implementation (log normal volatility cubes)
+# SABR calibration implementation (Interpolated volatility cubes)
 Calibration of volatility surfaces using Stochastic Alfa, Beta, Rho (SABR).
 The code is based on the article "Managing the Smile" by Hagan in 2002 ( https://www.researchgate.net/publication/235622441_Managing_Smile_Risk )
 

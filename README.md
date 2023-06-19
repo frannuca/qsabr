@@ -37,7 +37,7 @@ This project includes data structure definitions to access volatilty surfaces an
 ##  **Greeks**
 A first version of greeks for delta, gamma (non-diagonal) and vega is included. The expressions used for the given greeks are taken from https://www.next-finance.net/IMG/pdf/pdf_SABR.pdf .
 
-The computation of sensitivities with respect to SABR parameters such as $$\rho$$ requires to either interpolate on the SABR parameters directely (which is not implemented in this version) or resample the volatitlity surface for a given maturity and tenor, compute the SABR coefficients and then derive with respect to $$\rho$$ on the just interpolated point in the vol surface. This is currently work in progress.
+The computation of sensitivities with respect to SABR parameters such as $\rho$ requires to either interpolate on the SABR parameters directely (which is not implemented in this version) or resample the volatitlity surface for a given maturity and tenor, compute the SABR coefficients and then derive with respect to $\rho$ on the just interpolated point in the vol surface. This is currently work in progress.
 
 ## **qrirvol_test** 
 Contains unit tests which can be visitied to demonstrate the usage of the library from F#. 

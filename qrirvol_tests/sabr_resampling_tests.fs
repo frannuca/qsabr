@@ -150,4 +150,36 @@ type Testing_Surface_SABR()=
         let computed = SABRInterpolator.SurfaceInterpolator(VolSurface.from_csv("./data/input_volsurface.csv"),beta).SABRCube
         computed.to_csv("./data/beta1_0_sabrcoeff_error.csv")
 
+    [<Fact>]
+    let ``SABR Greeks`` () =
+        (**
+             Creates a vol surface with only one tenor. When trying to interpolate on a different tenor an
+             invalid argument exception is required to be thrown as no interpolation
+             can be performed on a single point.
+
+             When a the interpolation is placed exactely on the existing tenor point, the algorithm needs
+             to return a value.
+         **)
+
+          
+
+        let beta=0.5
+        //Constructing the vol surface using a builder object.
+        let computed = SABRInterpolator.SurfaceInterpolator(test_commons.get_benchmark_surface(),beta)
+        let F = 267.84261
+        let K = 117.84261
+        let delta_1 = computed.Delta(15.0<year>,24<month>,K*1e-4,F*1e-4,0.025,true)
+        let vega_1 = computed.Vega(15.0<year>,24<month>,K*1e-4,F*1e-4,0.025)
+        let gamma_1 = computed.Gamma(15.0<year>,24<month>,K*1e-4,F*1e-4,0.025,true)
+
+        Assert.Equal(delta_1,0.6271753749662822,5)
+        Assert.Equal(vega_1,0.017926670388162876,5)
+        Assert.Equal(gamma_1,3.7264549799242985,5)
+
+        0.0
+        
+
+        
+
+
         

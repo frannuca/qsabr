@@ -1,12 +1,12 @@
 ﻿module test_commons
-open System
-open qirvol.volatility
-open qirvol.qtime
-open qirvol.qtime.timeconversions
-open MathNet.Numerics.LinearAlgebra
-open qirvol.qtime
-open qirvol.volatility.SABR
-open Xunit
+    open System
+    open qirvol.volatility
+    open qirvol.qtime
+    open qirvol.qtime.timeconversions
+    open MathNet.Numerics.LinearAlgebra
+    open qirvol.qtime
+    open qirvol.volatility.SABR
+    open Xunit
     ///Strike deltas
     let strikes_in_bps = [|-150.0;-100.0;-50.0;-25.0;0.0;25.0;50.0;100.0;150.0|]
 

@@ -143,15 +143,20 @@ module SABR=
         let optgrad = fun (x:Vector<float>) -> gg.Gradient(x.ToArray()) |> Vector.Build.DenseOfArray
         
         let obj = ObjectiveFunction.Gradient(optfunc,System.Func<Vector<float>,Vector<float>> (optgrad))
-        let solver = new BfgsBMinimizer (1e-5, 1e-5, 1e-5, maximumIterations= 1000)
+        let solver = new BfgsBMinimizer (1e-5, 1e-5, 1e-3, maximumIterations= 1000)
         let lowerBound = new DenseVector([|0.001;-0.99;0.001|]);
-        let upperBound = new DenseVector([|5.0;0.99;100.001|]);
+        let upperBound = new DenseVector([|10.0;0.99;100.001|]);
         let initialGuess = new DenseVector([|0.05;0.1;10.0|]);
-
-        let result = solver.FindMinimum(obj, lowerBound, upperBound, initialGuess);
-        let res = result.FunctionInfoAtMinimum.Point.ToArray()
+        try
+            let result = solver.FindMinimum(obj, lowerBound, upperBound, initialGuess);
+            let res = result.FunctionInfoAtMinimum.Point.ToArray()
                 
-        {texp=texp;tenor=tenor;alpha=res.[0];beta=beta;nu=res.[2];rho=res.[1];f=f}
+            {texp=texp;tenor=tenor;alpha=res.[0];beta=beta;nu=res.[2];rho=res.[1];f=f}
+        with
+        | :? System.Exception as ex ->
+            Console.WriteLine(ex.Message)
+            raise ex
+                
        
     /// Finds the optimum SABR parameters for a given target smile curve.
     /// Beta  is required as input, assuming the model will be normal, lognormal or CIR as prior assumption.
@@ -172,14 +177,17 @@ module SABR=
         let lowerBound = new DenseVector([|-0.99;0.001|]);
         let upperBound = new DenseVector([|0.99;100.001|]);
         let initialGuess = new DenseVector([|0.1;10.0|]);
+        try
+            let result = solver.FindMinimum(obj, lowerBound, upperBound, initialGuess);
+            let res = result.FunctionInfoAtMinimum.Point.ToArray()
 
-        let result = solver.FindMinimum(obj, lowerBound, upperBound, initialGuess);
-        let res = result.FunctionInfoAtMinimum.Point.ToArray()
-
-        let atm_vol = (smile |> Array.minBy(fun p -> Math.Abs(p.strike-f))).volatility
-        let alpha = Solve_alpha_for_ATM(atm_vol,beta,res.[1],texp,res.[0],f)
-        {texp=texp;tenor=tenor;alpha=alpha;beta=beta;nu=res.[1];rho=res.[0];f=f}
-       
+            let atm_vol = (smile |> Array.minBy(fun p -> Math.Abs(p.strike-f))).volatility
+            let alpha = Solve_alpha_for_ATM(atm_vol,beta,res.[1],texp,res.[0],f)
+            {texp=texp;tenor=tenor;alpha=alpha;beta=beta;nu=res.[1];rho=res.[0];f=f}
+        with
+        | :? System.Exception as ex ->
+            Console.WriteLine(ex.Message);
+            raise ex;
 
 
     ///Calibrates a given volatility surface using SABR model.

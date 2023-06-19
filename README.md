@@ -34,7 +34,11 @@ This project includes data structure definitions to access volatilty surfaces an
 
  - The module SABRInterpolator (https://github.com/frannuca/qsabr/blob/main/volatility/sabrinterpolator.fs includes the SABRInterpolator.SurfaceInterpolator type, which corresponds to a class integrating the interpolation capabilities on maturity, tenor and strike (moneyness). Interpolation on maturities is performed using total variance  while for tenors only a linear interpolation is available at the moment. Calendar spread arbritage is  hence avoided on maturity interpolation but more work might be required on the algorithm to interpolate tenors. (For total variance interpolation see equation (21) in https://www.iasonltd.com/doc/old_rps/2007/2013_The_implied_volatility_surfaces.pdf)
  
- 
+##  **Greeks**
+A first version of greeks for delta, gamma (non-diagonal) and vega is included. The expressions used for the given greeks are taken from https://www.next-finance.net/IMG/pdf/pdf_SABR.pdf .
+
+The computation of sensitivities with respect to SABR parameters such as $$\rho$$ requires to either interpolate on the SABR parameters directely (which is not implemented in this version) or resample the volatitlity surface for a given maturity and tenor, compute the SABR coefficients and then derive with respect to $$\rho$$ on the just interpolated point in the vol surface. This is currently work in progress.
+
 ## **qrirvol_test** 
 Contains unit tests which can be visitied to demonstrate the usage of the library from F#. 
  ## **qdata** and **qtime**

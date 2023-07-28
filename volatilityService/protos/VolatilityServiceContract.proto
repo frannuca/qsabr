@@ -27,7 +27,8 @@ message SABRPillar
 	float alpha = 3;
 	float beta = 4;
 	float nu = 5;
-	float rho = 6;	
+	float rho = 6;
+	float forward=7;
 }
 
 message VolSurface{

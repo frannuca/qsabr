@@ -16,7 +16,7 @@ namespace volatilityService.data
             ("Vol",typeof(float))};
 
         
-        static public DataTable SABRcubetoTable(this SABRCube cube)
+        static public DataTable toTable(this SABRCube cube)
         {
             DataTable dt = new DataTable();
             foreach (var c in sabrcolumns)
@@ -41,7 +41,46 @@ namespace volatilityService.data
             return dt;
         }
 
-        static public DataTable VolSurfacetoTable(this VolSurface volsurface)
+        static public Dictionary<float, Dictionary<int, qirvol.volatility.VolPillar[]>> toDict(this VolSurface cube)
+        {
+            var dt = new Dictionary<float, Dictionary<int, qirvol.volatility.VolPillar[]>>();
+            foreach(var x in cube.Surface)
+            {
+                var expiry = x.ExpiryYears;
+
+                if (!dt.ContainsKey(expiry)) {
+                    dt[expiry] = new Dictionary<int, qirvol.volatility.VolPillar[]>();
+                }
+
+                var tenor = System.Convert.ToInt32(x.TenorYears * 12);
+                var pillar = new qirvol.volatility.VolPillar(tenor: tenor, strike: x.Strike, maturity: x.ExpiryYears, volatility: x.Value, forwardrate: x.Forward);
+                dt[expiry][tenor] = new qirvol.volatility.VolPillar[] { pillar };
+            }
+
+            return dt;
+        }
+
+        static public Dictionary<float, Dictionary<int, qirvol.volatility.SABR.SABRSolu[]>> toDict(this SABRCube cube)
+        {
+            var dt = new Dictionary<float, Dictionary<int, qirvol.volatility.SABR.SABRSolu[]>>();
+            foreach (var x in cube.Cube)
+            {
+                var expiry = x.ExpiryYears;
+
+                if (!dt.ContainsKey(expiry))
+                {
+                    dt[expiry] = new Dictionary<int, qirvol.volatility.SABR.SABRSolu[]>();
+                }
+
+                var tenor = System.Convert.ToInt32(x.TenorYears * 12);
+                var pillar = new qirvol.volatility.SABR.SABRSolu(x.ExpiryYears,tenor,x.Alpha,x.Beta,x.Nu,x.Rho,f:x.Forward);
+                dt[expiry][tenor] = new qirvol.volatility.SABR.SABRSolu[] { pillar };
+            }
+
+            return dt;
+        }
+
+        static public DataTable toTable(this VolSurface volsurface)
         {
             DataTable dt = new DataTable();
             foreach (var c in volcolums)

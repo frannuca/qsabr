@@ -32,4 +32,8 @@
   <ItemGroup>
     <Protobuf Include="protos\VolatilityServiceContract.proto" />      
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\qtime\qtime.fsproj" />
+    <ProjectReference Include="..\volatility\volatility.fsproj" />
+  </ItemGroup>
 </Project>

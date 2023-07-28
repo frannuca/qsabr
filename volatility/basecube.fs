@@ -7,7 +7,8 @@ open qirvol.qtime
 
 
 ///Volatility cube class.
-///The ctor. requires an array of cube points of type T. Ctors requires a map from maturity in year -> tenor in months -> array of point (vol-strike or sabr coefficients).
+///The ctor. requires an array of cube points of type T.
+//Ctors requires a map from maturity in year -> tenor in months -> array of point (vol-strike or sabr coefficients).
 [<AbstractClass>]
 type BaseSabrCube<'T>(cube:Map<float<year>,Map<int<month>,'T array>>)=
 

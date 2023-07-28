@@ -1,0 +1,63 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "VolatilityService.Generated";
+
+package proto;
+
+service VolatilitySurfaceService
+{
+	rpc ComputeSABR(VolatilitySurfaceRequest) returns (VolatilitySurfaceResponse){}
+	rpc InterpolateSurface(VolatilitySurfaceRequest) returns (VolatilitySurfaceResponse){}
+}
+
+
+message SurfacePillar
+{
+	float expiry_years = 1;
+	float tenor_years = 2;
+	float forward = 3;
+	float strike = 4;
+	float value = 5;	
+}
+
+message SABRPillar
+{
+	float expiry_years = 1;
+	float tenor_years = 2;
+	float alpha = 3;
+	float beta = 4;
+	float nu = 5;
+	float rho = 6;	
+}
+
+message VolSurface{
+	repeated SurfacePillar surface = 1;
+}
+
+message SABRCube{
+	repeated SABRPillar cube = 1;
+}
+
+message VolatilitySurfaceRequest
+{
+	enum VolatilityCalculatationType
+	{
+	COMPUTE_SABR = 0;
+	INTERPOLATE = 1;
+	}
+	VolatilityCalculatationType caculationType = 2;
+	oneof cubeData{		
+		 VolSurface volsurface = 3;
+		 SABRCube sabr_cube = 4;
+	}
+	
+}
+
+message VolatilitySurfaceResponse
+{	
+	oneof cubeData {		
+		 VolSurface volsurface = 1;
+		 SABRCube sabr_cube = 2;
+	}
+}
+

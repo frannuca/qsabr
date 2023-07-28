@@ -153,7 +153,7 @@ module SABR=
                 
             {texp=texp;tenor=tenor;alpha=res.[0];beta=beta;nu=res.[2];rho=res.[1];f=f}
         with
-        | :? System.Exception as ex ->
+        |  ex ->
             Console.WriteLine(ex.Message)
             raise ex
                 
@@ -185,7 +185,7 @@ module SABR=
             let alpha = Solve_alpha_for_ATM(atm_vol,beta,res.[1],texp,res.[0],f)
             {texp=texp;tenor=tenor;alpha=alpha;beta=beta;nu=res.[1];rho=res.[0];f=f}
         with
-        | :? System.Exception as ex ->
+        | ex ->
             Console.WriteLine(ex.Message);
             raise ex;
 

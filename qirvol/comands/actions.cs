@@ -61,8 +61,8 @@ namespace qirvol.comands
                             .Select(x => Math.Log(x));
             var smile = interpolator.get_smile(Expiry, Tenor, logK_f.ToArray(), Fwd);
 
-            smile.to_csv(Output);
-            interpolator.SABRCube.to_csv(Output.Replace(".csv", "sabr.csv"));
+            smile.to_csv(Output??"");
+            interpolator.SABRCube.to_csv((Output??"").Replace(".csv", "sabr.csv"));
 
         }
     }

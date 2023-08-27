@@ -35,11 +35,17 @@ type SurfaceCsvColumns=
 
 ///Volatility cube class.
 ///The ctor. requires an array of VolPillars (or surface points)
-type VolSurface(cube:Map<float<year>,Map<int<month>,VolPillar array>>)=    
+type VolSurface(cube:Map<float<year>,Map<int<month>,VolPillar array>>)=
+    
     inherit BaseSabrCube<VolPillar>(cube)
     ///Maturities expressed in days. Day unit allows to use int keys for maturities with a resolution of 1day.    
     //Tenor,Expiry,Fwd,Strike,Vol
-    /// Serializes into csv the vol sureface    
+    /// Serializes into csv the vol sureface
+
+    new(dcube:System.Collections.Generic.IDictionary<float<year>,System.Collections.Generic.IDictionary<int<month>,VolPillar array>>)=
+        let cube = dcube |> Seq.map(fun kv -> kv.Key,kv.Value |> Seq.map(fun kv2 -> kv2.Key,kv2.Value) |> Map.ofSeq) |> Map.ofSeq
+        VolSurface(cube)
+
     override self.to_csv(filepath:string)=        
         let frame = cube
                     |>Seq.map(fun kv -> let texp=kv.Key

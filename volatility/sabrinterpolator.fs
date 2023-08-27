@@ -14,6 +14,7 @@ module SABRInterpolator=
            
     open MathNet.Numerics.Distributions
     type SurfaceInterpolator(surface:VolSurface,beta:float)=
+    
         let cube = SabrCube(SABR.sigma_calibrate(surface,10.0,0.2,beta))
 
         let rec binary_search(lo:int,hi:int,x:float,arr:float array,tol:float)=

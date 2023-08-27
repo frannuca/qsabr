@@ -28,6 +28,8 @@ namespace volatilityService.severimpl
 
         override public Task<VolatilitySurfaceResponse> InterpolateSurface(VolatilitySurfaceRequest request, ServerCallContext context)
         {
+			var surfacedict = request.Volsurface.toDict();
+			var surface = new qirvol.volatility.VolSurface(surfacedict);
             throw new NotImplementedException();
         }
 

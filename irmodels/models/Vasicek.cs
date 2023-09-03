@@ -4,12 +4,19 @@ using MathNet.Numerics.Distributions;
 
 namespace irmodels.models
 {
-	public struct VasicekParams
+	public class VasicekParams
 	{
-		public double theta;
-        public double kappa;
-        public double sigma;
-        public double ro;        
+        public VasicekParams(double theta,double kappa,double sigma,double ro)
+        {
+            this.theta = theta;
+            this.kappa = kappa;
+            this.sigma = sigma;
+            this.ro = ro;
+        }
+        readonly public double theta;
+        readonly public double kappa;
+        readonly public double sigma;
+        readonly public double ro;        
 	}
 
 	public struct Pillar { public double t; public double value; }
@@ -34,11 +41,11 @@ namespace irmodels.models
             var a = (rt_0xrt_1 - 1.0 / (float)N  * sum_rt_0 * sum_rt_1) / (ri2 - 1.0 / (float)N  * sum_rt_0 * sum_rt_0);
             var b = 1.0 / (float)N  * (sum_rt_1 - a * sum_rt_0);
 
-            var kappa = (1 - a) / dt;
-            var theta = b / (1 - a);
-            var ro = r_v_total[0];
-            var sigma = MathNet.Numerics.Statistics.Statistics.StandardDeviation(r_v_1 - a * r_v_0 - b) / Math.Sqrt(dt);
-            return new VasicekParams { kappa = kappa, theta = theta, sigma = sigma, ro = ro};       
+            var xkappa = (1 - a) / dt;
+            var xtheta = b / (1 - a);
+            var xro = r_v_total[0];
+            var xsigma = MathNet.Numerics.Statistics.Statistics.StandardDeviation(r_v_1 - a * r_v_0 - b) / Math.Sqrt(dt);
+            return new VasicekParams(kappa: xkappa, theta: xtheta, sigma: xsigma, ro: xro);       
         }
 
         override public Matrix<double> Run(VasicekParams x)

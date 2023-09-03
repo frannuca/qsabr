@@ -41,9 +41,9 @@ namespace volatilityService.data
             return dt;
         }
 
-        static public Dictionary<float, Dictionary<int, qirvol.volatility.VolPillar[]>> toDict(this VolSurface cube)
+        static public Dictionary<double, Dictionary<int, qirvol.volatility.VolPillar[]>> toDict(this VolSurface cube)
         {
-            var dt = new Dictionary<float, Dictionary<int, qirvol.volatility.VolPillar[]>>();
+            var dt = new Dictionary<double, Dictionary<int, qirvol.volatility.VolPillar[]>>();
             foreach(var x in cube.Surface)
             {
                 var expiry = x.ExpiryYears;

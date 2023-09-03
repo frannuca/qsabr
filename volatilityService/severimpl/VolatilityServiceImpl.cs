@@ -26,10 +26,35 @@ namespace volatilityService.severimpl
 			throw new NotImplementedException();
 		}
 
+        /*
+		 * message SurfacePillar
+		{
+		float expiry_years = 1;
+		float tenor_years = 2;
+		float forward = 3;
+		float strike = 4;
+		float value = 5;	
+		}
+		 * */
         override public Task<VolatilitySurfaceResponse> InterpolateSurface(VolatilitySurfaceRequest request, ServerCallContext context)
         {
-			var surfacedict = request.Volsurface.toDict();
+            
+            var surfacedict = (IDictionary<double, IDictionary<int, qirvol.volatility.VolPillar[]>>)request.Volsurface.toDict();
 			var surface = new qirvol.volatility.VolSurface(surfacedict);
+
+			var msg = new VolatilitySurfaceResponse();
+			msg.Volsurface = new VolSurface();
+			var psurf = surface.maturities_years
+						.Select(T => {
+							var tenors = surface.tenors_by_maturity(T);
+							var data = tenors.Select(tenor => surface.Cube_Ty[T][tenor]);
+							return 0.0;
+							})
+						;
+
+            msg.Volsurface.Surface.AddRange(null);
+
+
             throw new NotImplementedException();
         }
 

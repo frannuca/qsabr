@@ -3,8 +3,11 @@
 open System
 open System.Collections.Immutable
 open qirvol.qtime
-open qirvol.volatility.SABR
 open Deedle
+
+
+//Each calibrated smile is charaterized by its alpha, beta, nu, rho and current forward 'f'.
+    type SABRSolution={texp:float<year>;tenor:int<month>;alpha:float;beta:float;nu:float;rho:float;f:float}
 
 type SABRCsvColumns=
     |Tenor
@@ -38,13 +41,9 @@ type SABRCsvColumns=
         |_ -> failwith $"Unknown sasbr column name {x}"
 ///Volatility cube class.
 ///The ctor. requires an array of VolPillars (or surface points)
-type SabrCube(cube:Map<float<year>,Map<int<month>,SABRSolu array>>)=
-    inherit BaseSabrCube<SABRSolu>(cube)
-    
-    ///Maturities expressed in days. Day unit allows to use int keys for maturities with a resolution of 1day.    
-      //Tenor,Expiry,Fwd,Strike,Vol
-      /// Serializes into csv the vol sureface
-      //file.WriteLine("Tenor,Expiry,Fwd,alpha,beta,nu,rho")
+type SABRCube(cube:Map<float<year>,Map<int<month>,SABRSolution array>>)=
+      inherit BaseSabrCube<SABRSolution>(cube)
+        
       override self.to_csv(filepath:string)=        
           let frame = cube
                       |>Seq.map(fun kv -> let texp=kv.Key
@@ -71,18 +70,25 @@ type SabrCube(cube:Map<float<year>,Map<int<month>,SABRSolu array>>)=
                       
           frame.SaveCsv(filepath,includeRowKeys=false)
                      
-
+      new(x:System.Collections.Generic.IDictionary<double, System.Collections.Generic.IDictionary<int, SABRSolution[]>>)=
+            SABRCube(x
+            |> Seq.map(fun kv -> (kv.Key*1.0<year>,kv.Value
+                                         |> Seq.map(fun kv2 -> (kv2.Key*1<month>,kv2.Value) )
+                                         |> Map.ofSeq))
+            |> Map.ofSeq
+            )
+               
       //Factory method from file in csv format builds the associated SABR cube object
-      static member from_csv(filepath:string):SabrCube=
+      static member from_csv(filepath:string):SABRCube=
           let frame= Frame.ReadCsv(path=filepath)
           let cube = frame
-                      |>Frame.mapRowValues(fun series -> {SABRSolu.tenor=series.GetAs<int>(SABRCsvColumns.Tenor.ToString())*12<month>;
-                                                          SABRSolu.texp=series.GetAs<float>(SABRCsvColumns.Expiry.ToString())*1.0<year>;
-                                                          SABRSolu.f=series.GetAs<float>(SABRCsvColumns.Fwd.ToString())*1e-4
-                                                          SABRSolu.alpha=series.GetAs<float>(SABRCsvColumns.Alpha.ToString());
-                                                          SABRSolu.beta=series.GetAs<float>(SABRCsvColumns.Beta.ToString());
-                                                          SABRSolu.nu=series.GetAs<float>(SABRCsvColumns.Nu.ToString());
-                                                          SABRSolu.rho=series.GetAs<float>(SABRCsvColumns.Rho.ToString());
+                      |>Frame.mapRowValues(fun series -> {SABRSolution.tenor=series.GetAs<int>(SABRCsvColumns.Tenor.ToString())*12<month>;
+                                                          SABRSolution.texp=series.GetAs<float>(SABRCsvColumns.Expiry.ToString())*1.0<year>;
+                                                          SABRSolution.f=series.GetAs<float>(SABRCsvColumns.Fwd.ToString())*1e-4
+                                                          SABRSolution.alpha=series.GetAs<float>(SABRCsvColumns.Alpha.ToString());
+                                                          SABRSolution.beta=series.GetAs<float>(SABRCsvColumns.Beta.ToString());
+                                                          SABRSolution.nu=series.GetAs<float>(SABRCsvColumns.Nu.ToString());
+                                                          SABRSolution.rho=series.GetAs<float>(SABRCsvColumns.Rho.ToString());
 
                       })|> Series.values
                       |> Seq.groupBy(fun x -> x.texp)
@@ -91,5 +97,4 @@ type SabrCube(cube:Map<float<year>,Map<int<month>,SABRSolu array>>)=
 
           
 
-          SabrCube(cube)
-    
+          SABRCube(cube)

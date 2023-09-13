@@ -1,12 +1,11 @@
-﻿using System;
-using Grpc.Core;
-using System.Threading.Tasks;
+﻿using Grpc.Core;
 using VolatilityService.Generated;
-using volatilityService.severimpl;
 
-namespace volatilityService
+namespace volatilityService.server
 {
-	public class VolatilitySurfaceServiceServer
+    using severimpl;
+    
+	public class VolatilitySurfaceServiceServer<T>
 	{
 		private Server _server;
 		public VolatilitySurfaceServiceServer(string host="localhost",int port=22222)
@@ -28,6 +27,7 @@ namespace volatilityService
         {
             await _server.ShutdownAsync();
         }
+        
     }
 }
 

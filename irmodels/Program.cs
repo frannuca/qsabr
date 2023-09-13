@@ -13,12 +13,12 @@ internal class Program
     private static void Main(string[] args)
     {
         var T = 20;
-        var vs = new Vasicek(timehorizon: T, N: (uint)T * 12, nsims: 1000);
+        var vs = new Vasicek(timehorizon: T, n: (uint)T * 12, nsims: 1000);
 
         var boundaries = new RegimeDefinition[]
         {
-            new RegimeDefinition(lower_boundary:15,higher_boundary:20,"VIX"),
-            new RegimeDefinition(lower_boundary:20,higher_boundary:2000,"VIX")
+            new RegimeDefinition(LowerBoundary:15,HigherBoundary:20,"VIX"),
+            new RegimeDefinition(LowerBoundary:20,HigherBoundary:2000,"VIX")
         };
         var mds = new CurveDataProvider(folderpath: "/Users/fran/Downloads/md",new string[] {"VIX","ESTR"});
 
@@ -30,9 +30,9 @@ internal class Program
         var res = optimmizer.Fit("UBS",cons);
         Console.WriteLine(res);
         var cob = new DateTime(2023, 1, 1);
-        var estr = mds["ESTR"].Where(p => p.date>= cob).ToArray();
-        var ret_estr = Enumerable.Range(1, estr.Length - 1)             
-            .Select(i => new Pillar { t = (float)i/360.0, value = estr[i].curve_value/100.0 }).ToArray();
+        var estr = mds["ESTR"].Where(p => p.Date>= cob).ToArray();
+        var retEstr = Enumerable.Range(1, estr.Length - 1)             
+            .Select(i => new Pillar { T = (float)i/360.0, Value = estr[i].CurveValue/100.0 }).ToArray();
 
 
         //var paramvasicek = vs.calibrate(ret_estr);

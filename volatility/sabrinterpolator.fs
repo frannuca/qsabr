@@ -15,7 +15,7 @@ module SABRInterpolator=
     open MathNet.Numerics.Distributions
     type SurfaceInterpolator(surface:VolSurface,beta:float)=
     
-        let cube = SabrCube(SABR.sigma_calibrate(surface,10.0,0.2,beta))
+        let cube = SABR.sigma_calibrate(surface,10.0,0.2,beta)
 
         let rec binary_search(lo:int,hi:int,x:float,arr:float array,tol:float)=
             if arr.Length=0 then invalidArg (nameof arr) $" Array must include at least two for binary search"
@@ -142,7 +142,6 @@ module SABRInterpolator=
             self.resample_surface([|expirie|],[|tenor|],logf_k,fwd)
 
         member self.SABRCube with get()=cube
-
         
              
         member self.Vega(T:float<year>,tenor:int<month>,K:float,F:float,r:float)=

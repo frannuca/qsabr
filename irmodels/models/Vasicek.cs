@@ -8,63 +8,63 @@ namespace irmodels.models
 	{
         public VasicekParams(double theta,double kappa,double sigma,double ro)
         {
-            this.theta = theta;
-            this.kappa = kappa;
-            this.sigma = sigma;
-            this.ro = ro;
+            this.Theta = theta;
+            this.Kappa = kappa;
+            this.Sigma = sigma;
+            this.Ro = ro;
         }
-        readonly public double theta;
-        readonly public double kappa;
-        readonly public double sigma;
-        readonly public double ro;        
+        readonly public double Theta;
+        readonly public double Kappa;
+        readonly public double Sigma;
+        readonly public double Ro;        
 	}
 
-	public struct Pillar { public double t; public double value; }
+	public struct Pillar { public double T; public double Value; }
 	
-	public class Vasicek:  IRModelBase<VasicekParams, Pillar[]>
+	public class Vasicek:  IrModelBase<VasicekParams, Pillar[]>
 	{
 
-		public Vasicek(double timehorizon,uint N,uint nsims) : base(timehorizon,N,nsims) { }
+		public Vasicek(double timehorizon,uint n,uint nsims) : base(timehorizon,n,nsims) { }
 
-        override public VasicekParams calibrate(Pillar[] x)
+        override public VasicekParams Calibrate(Pillar[] x)
         {
-            int N = x.Length;
-            var dt = x[1].t - x[0].t;
-            var r_v_total = Vector<double>.Build.DenseOfEnumerable(x.Select(p => p.value));
-            var r_v_0 = r_v_total.SubVector(0, r_v_total.Count - 1);
-            var r_v_1 = r_v_total.SubVector(1, r_v_total.Count - 1);
-            var sum_rt_0 = r_v_0.Sum();
-            var sum_rt_1 = r_v_1.Sum();
-            var rt_0xrt_1 = r_v_0 * r_v_1;
-            var ri2 = (r_v_0 * r_v_0);
+            int n = x.Length;
+            var dt = x[1].T - x[0].T;
+            var rVTotal = Vector<double>.Build.DenseOfEnumerable(x.Select(p => p.Value));
+            var rV0 = rVTotal.SubVector(0, rVTotal.Count - 1);
+            var rV1 = rVTotal.SubVector(1, rVTotal.Count - 1);
+            var sumRt0 = rV0.Sum();
+            var sumRt1 = rV1.Sum();
+            var rt0Xrt1 = rV0 * rV1;
+            var ri2 = (rV0 * rV0);
 
-            var a = (rt_0xrt_1 - 1.0 / (float)N  * sum_rt_0 * sum_rt_1) / (ri2 - 1.0 / (float)N  * sum_rt_0 * sum_rt_0);
-            var b = 1.0 / (float)N  * (sum_rt_1 - a * sum_rt_0);
+            var a = (rt0Xrt1 - 1.0 / (float)n  * sumRt0 * sumRt1) / (ri2 - 1.0 / (float)n  * sumRt0 * sumRt0);
+            var b = 1.0 / (float)n  * (sumRt1 - a * sumRt0);
 
             var xkappa = (1 - a) / dt;
             var xtheta = b / (1 - a);
-            var xro = r_v_total[0];
-            var xsigma = MathNet.Numerics.Statistics.Statistics.StandardDeviation(r_v_1 - a * r_v_0 - b) / Math.Sqrt(dt);
+            var xro = rVTotal[0];
+            var xsigma = MathNet.Numerics.Statistics.Statistics.StandardDeviation(rV1 - a * rV0 - b) / Math.Sqrt(dt);
             return new VasicekParams(kappa: xkappa, theta: xtheta, sigma: xsigma, ro: xro);       
         }
 
         override public Matrix<double> Run(VasicekParams x)
         {
             var norm = new Normal();
-            int N = (int)this.N;
+            int n = (int)this.N;
             
-            double dt = this.thorizon / (this.N-1);
-            double sqrt_dt = Math.Sqrt(dt);
+            double dt = this.Thorizon / (this.N-1);
+            double sqrtDt = Math.Sqrt(dt);
             
-            var path = Matrix<double>.Build.Dense((int)this.NSim,N);
+            var path = Matrix<double>.Build.Dense((int)this.NSim,n);
             using (var file = new StreamWriter("./file.csv"))
                 for (int i = 0; i < this.NSim; ++i)
                 {
-                    var rv = Vector<double>.Build.Dense(N);
-                    rv[0] = x.ro;
-                    for (int j = 1; j < N; ++j)
+                    var rv = Vector<double>.Build.Dense(n);
+                    rv[0] = x.Ro;
+                    for (int j = 1; j < n; ++j)
                     {            
-                        rv[j] = rv[j - 1] + x.kappa * (x.theta - rv[j - 1]) * dt + x.sigma *sqrt_dt* norm.Sample();
+                        rv[j] = rv[j - 1] + x.Kappa * (x.Theta - rv[j - 1]) * dt + x.Sigma *sqrtDt* norm.Sample();
                         file.Write(rv[j]);
                         file.Write(",");
                     }

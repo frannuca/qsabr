@@ -2,20 +2,20 @@
 using MathNet.Numerics.LinearAlgebra;
 namespace irmodels.models{
 
-	public abstract class IRModelBase<A,B>
+	public abstract class IrModelBase<TA,TB>
 	{
-		public IRModelBase(double th,uint Ntime, uint nsims)
+		public IrModelBase(double th,uint ntime, uint nsims)
 		{
-            thorizon = th;
-            N = Ntime;
+            Thorizon = th;
+            N = ntime;
             NSim = nsims;
         }
-		protected readonly double thorizon;
+		protected readonly double Thorizon;
         protected readonly uint N;
         protected readonly uint NSim;
 
-        public abstract Matrix<double> Run(A x);
-        public abstract A calibrate(B x);
+        public abstract Matrix<double> Run(TA x);
+        public abstract TA Calibrate(TB x);
     }
 }
 

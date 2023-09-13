@@ -128,7 +128,7 @@ type Testing_Surface_SABR()=
         let computed = SABRInterpolator.SurfaceInterpolator(test_commons.get_benchmark_surface(),beta).SABRCube
         computed.to_csv("./data/beta0_5_sabrcoeff.csv")
 
-        let expected = SabrCube.from_csv("./data/beta0_5_sabrcoeff.csv")
+        let expected = SABRCube.from_csv("./data/beta0_5_sabrcoeff.csv")
         // Creating the interpolator for  the surface
         let beta=0.5
         

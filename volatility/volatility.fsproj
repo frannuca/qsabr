@@ -8,8 +8,8 @@
   <ItemGroup>
     <Compile Include="basecube.fs" />
     <Compile Include="volcube.fs" />
+    <Compile Include="SABRCube.fs" />
     <Compile Include="sabr.fs" />
-    <Compile Include="sabrcube.fs" />
     <Compile Include="sabrinterpolator.fs" />       
   </ItemGroup>
   <ItemGroup>

@@ -36,10 +36,10 @@ namespace qirvol.comands
         public float Beta { get; set; }
 
         [Option('l', "low_moneyness", Required = true, HelpText = "i.e. 20% is express are 0.8")]
-        public float Low_moneyness { get; set; }
+        public float LowMoneyness { get; set; }
 
         [Option('h', "high_moneyness", Required = true, HelpText = "i.e. 20% is express are 1.2")]
-        public float High_moneyness { get; set; }
+        public float HighMoneyness { get; set; }
 
 
         [Option('f', "forward", Required = true, HelpText = "forward spot value")]
@@ -56,10 +56,10 @@ namespace qirvol.comands
             //Reading pillars from file ..
             var surface = VolSurface.from_csv(Input);
             var interpolator = new SABRInterpolator.SurfaceInterpolator(surface, Beta );
-            var logK_f = Enumerable.Range(0, Resolution)
-                            .Select(n => Low_moneyness + (High_moneyness - Low_moneyness) * n / (Resolution - 1))
+            var logKF = Enumerable.Range(0, Resolution)
+                            .Select(n => LowMoneyness + (HighMoneyness - LowMoneyness) * n / (Resolution - 1))
                             .Select(x => Math.Log(x));
-            var smile = interpolator.get_smile(Expiry, Tenor, logK_f.ToArray(), Fwd);
+            var smile = interpolator.get_smile(Expiry, Tenor, logKF.ToArray(), Fwd);
 
             smile.to_csv(Output??"");
             interpolator.SABRCube.to_csv((Output??"").Replace(".csv", "sabr.csv"));

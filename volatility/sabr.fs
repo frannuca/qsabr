@@ -13,10 +13,7 @@ open MathNet.Numerics.LinearAlgebra.Double;
 
 ///Module for the SABR calibration.
 module SABR=
-    
-    //Each calibrated smile is charaterized by its alpha, beta, nu, rho and current forward 'f'.
-    type SABRSolu={texp:float<year>;tenor:int<month>;alpha:float;beta:float;nu:float;rho:float;f:float}
-
+        
     ///Given  SABR parameters returns the atm SABR expression coefficients of the underlying cubic
     ///polynome. The resulting coefficients are returnd in an array with:
     /// [0] -> a^1
@@ -75,7 +72,7 @@ module SABR=
             
             
 
-    let Sigma_SABR_Smile(param:SABRSolu)=
+    let Sigma_SABR_Smile(param:SABRSolution)=
         fun k -> Sigma_SABR(param.alpha,param.beta,param.nu,param.texp,param.rho,param.f,k)
 
     let Solve_alpha_for_ATM(sigmaATM:float,b:float,nu:float,texp:float<year>,rho:float,f:float)=
@@ -210,4 +207,4 @@ module SABR=
                                      ftexp,volsurface.tenors_by_maturity(ftexp) |> Array.ofSeq
                                      |> Array.map(fun tenor -> tenor,[|calibrate_smile_with_alpha(volsurface.Smile(ftexp,tenor),alpha0,nu0,rho0,beta)|])|> Map.ofArray)
                                      |>Map.ofArray
-    
+        |> SABRCube

@@ -38,7 +38,7 @@ type Testing_Surface_SABR()=
                         .Build()
 
         // calibration of the surface (smile) 
-        let res = SABR.sigma_calibrate(surface,nu0,rho0,beta)
+        let res = SABR.sigma_calibrate(surface,nu0,rho0,beta).Cube_Ty
 
         //Since we only have one smile for the 3m in 5y we just extract the calibrated parameters for the smile.
         //TODO: In this version expiries as expressed as floating key, which is not ideal as matching requires tolerance.        
@@ -76,7 +76,7 @@ type Testing_Surface_SABR()=
         let beta=0.5
 
         // calibration of the surface (smile) 
-        let res = SABR.sigma_calibrate(surface,nu0,rho0,beta)
+        let res = SABR.sigma_calibrate(surface,nu0,rho0,beta).Cube_Ty
         test_commons.compare_surfaces(strikes_in_bps,res,surface)
         
         0.0
@@ -100,7 +100,7 @@ type Testing_Surface_SABR()=
         let beta=1.0
 
         // calibration of the surface (smile) 
-        let res = SABR.sigma_calibrate(surface,nu0,rho0,beta)
+        let res = SABR.sigma_calibrate(surface,nu0,rho0,beta).Cube_Ty
         test_commons.compare_surfaces(strikes_in_bps,res,surface)
         
         0.0

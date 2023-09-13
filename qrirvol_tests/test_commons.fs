@@ -14,9 +14,9 @@
         strikes_in_bps
         |> Array.mapi(fun i dk -> {maturity=texp;strike=f+dk*1e-4;VolPillar.tenor=tenor;VolPillar.volatility=sigmaB.[i];VolPillar.forwardrate=f})
               
-    let compare_surfaces (strikes_in_bps,res:Map<float<year>,Map<int<month>,SABRSolu array>>,surface:VolSurface)=
+    let compare_surfaces (strikes_in_bps,res:Map<float<year>,Map<int<month>,SABRSolution array>>,surface:VolSurface)=
         res
-        |> Map.iter(fun (T:float<year>) (tenor2param:Map<int<month>,SABR.SABRSolu array>) ->
+        |> Map.iter(fun (T:float<year>) (tenor2param:Map<int<month>,SABRSolution array>) ->
                           tenor2param
                           |> Map.iter(fun tenor x ->
                                         let computed = strikes_in_bps                                                   
@@ -36,9 +36,9 @@
                                         ||> Array.iter2(fun a b -> Assert.Equal(a,b,0.15))))
     
 
-    let compare_sbar_coeff (res:Map<float<year>,Map<int<month>,SABRSolu array>>,surface:SabrCube)=
+    let compare_sbar_coeff (res:Map<float<year>,Map<int<month>,SABRSolution array>>,surface:SABRCube)=
            res
-           |> Map.iter(fun (T:float<year>) (tenor2param:Map<int<month>,SABR.SABRSolu array>) ->
+           |> Map.iter(fun (T:float<year>) (tenor2param:Map<int<month>,SABRSolution array>) ->
                              tenor2param
                              |> Map.iter(fun tenor x ->
                                            let computed = x.[0]

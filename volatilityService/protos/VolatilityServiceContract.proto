@@ -4,14 +4,8 @@ option csharp_namespace = "VolatilityService.Generated";
 
 package proto;
 
-service VolatilitySurfaceService
-{
-	rpc ComputeSABR(VolatilitySurfaceRequest) returns (VolatilitySurfaceResponse){}
-	rpc InterpolateSurface(VolatilitySurfaceRequest) returns (VolatilitySurfaceResponse){}
-}
 
-
-message SurfacePillar
+message PSurfacePillar
 {
 	float expiry_years = 1;
 	float tenor_years = 2;
@@ -20,7 +14,7 @@ message SurfacePillar
 	float value = 5;	
 }
 
-message SABRPillar
+message PSABRPillar
 {
 	float expiry_years = 1;
 	float tenor_years = 2;
@@ -31,34 +25,42 @@ message SABRPillar
 	float forward=7;
 }
 
-message VolSurface{
-	repeated SurfacePillar surface = 1;
+message PVolSurface{
+	repeated PSurfacePillar surface = 1;
 }
 
-message SABRCube{
-	repeated SABRPillar cube = 1;
+message PSABRCube{
+	repeated PSABRPillar cube = 1;
 }
 
 message VolatilitySurfaceRequest
-{
-	enum VolatilityCalculatationType
-	{
-	COMPUTE_SABR = 0;
-	INTERPOLATE = 1;
-	}
-	VolatilityCalculatationType caculationType = 2;
-	oneof cubeData{		
-		 VolSurface volsurface = 3;
-		 SABRCube sabr_cube = 4;
-	}
-	
+{						 
+	PSABRCube sabr_cube = 1;
+	repeated double maturities_inyears=2;
+	repeated double tenors_inyears = 3;
+	repeated double moneyness = 4;
+	double forward = 5;			
 }
 
 message VolatilitySurfaceResponse
 {	
-	oneof cubeData {		
-		 VolSurface volsurface = 1;
-		 SABRCube sabr_cube = 2;
-	}
+	PVolSurface surface_computed_grid=1;
 }
 
+message VolatilitySABRRequest
+{				
+    double beta = 1;    
+	PVolSurface surface_grid_input=2;
+			
+}
+
+message VolatilitySABRResponse
+{	
+	PSABRCube sabr_cube_computed = 1;
+}
+
+
+service VolatilitySurfaceService
+{
+	rpc ComputeSABR(VolatilitySABRRequest) returns (VolatilitySABRResponse){}	
+}

@@ -1,0 +1,66 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "VolatilityService.Generated";
+
+package proto;
+
+
+message PSurfacePillar
+{
+	float expiry_years = 1;
+	float tenor_years = 2;
+	float forward = 3;
+	float strike = 4;
+	float value = 5;	
+}
+
+message PSABRPillar
+{
+	float expiry_years = 1;
+	float tenor_years = 2;
+	float alpha = 3;
+	float beta = 4;
+	float nu = 5;
+	float rho = 6;
+	float forward=7;
+}
+
+message PVolSurface{
+	repeated PSurfacePillar surface = 1;
+}
+
+message PSABRCube{
+	repeated PSABRPillar cube = 1;
+}
+
+message VolatilitySurfaceRequest
+{						 
+	PSABRCube sabr_cube = 1;
+	repeated double maturities_inyears=2;
+	repeated double tenors_inyears = 3;
+	repeated double moneyness = 4;
+	double forward = 5;			
+}
+
+message VolatilitySurfaceResponse
+{	
+	PVolSurface surface_computed_grid=1;
+}
+
+message VolatilitySABRRequest
+{				
+    double beta = 1;    
+	PVolSurface surface_grid_input=2;
+			
+}
+
+message VolatilitySABRResponse
+{	
+	PSABRCube sabr_cube_computed = 1;
+}
+
+
+service VolatilitySurfaceService
+{
+	rpc ComputeSABR(VolatilitySABRRequest) returns (VolatilitySABRResponse){}	
+}

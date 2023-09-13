@@ -11,20 +11,20 @@ namespace irmodels.fitters
 	/// </summary>
 	public class CurveProjection
 	{
-		readonly protected Frame<DateTime, string> _factors;
-        readonly protected Matrix<double> _matrix_factors;		
-        readonly string[] _factor_order;
+		readonly protected Frame<DateTime, string> Factors;
+        readonly protected Matrix<double> MatrixFactors;		
+        readonly string[] _factorOrder;
 
 		public CurveProjection(Frame<DateTime,string> factors)
 		{
-			_factors = factors;			
-            _factor_order = factors.ColumnKeys.ToArray();
-			_matrix_factors = Matrix.ofFrame(_factors);
+			Factors = factors;			
+            _factorOrder = factors.ColumnKeys.ToArray();
+			MatrixFactors = Matrix.ofFrame(Factors);
         }
 
-		public Vector<double> series2vector(Series<string, double> x)
+		public Vector<double> Series2Vector(Series<string, double> x)
 		{
-			var a = x[_factor_order].Values.ToArray();
+			var a = x[_factorOrder].Values.ToArray();
             return Vector<double>.Build.DenseOfArray(a);
 		}
 
@@ -34,15 +34,15 @@ namespace irmodels.fitters
 		/// <param name="x">coefficients as a series that need to match the
 		/// the risk factors in the internal _factors frame.</param>
 		/// <returns></returns>
-		public Series<DateTime,double> compute(Series<string,double> x)
+		public Series<DateTime,double> Compute(Series<string,double> x)
 		{
-			var ts = _matrix_factors * series2vector(x);
-			return new Series<DateTime,double>(_factors.RowKeys, ts.ToArray());
+			var ts = MatrixFactors * Series2Vector(x);
+			return new Series<DateTime,double>(Factors.RowKeys, ts.ToArray());
         }
 
 		public double compute_error(Series<string, double> x, Series<DateTime, double> target)
 		{
-			var err = (compute(x) - target).Select(x => x.Value * x.Value).Sum();
+			var err = (Compute(x) - target).Select(x => x.Value * x.Value).Sum();
 			//Console.WriteLine(err);
 			return err;
 		}

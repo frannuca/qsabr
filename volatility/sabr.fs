@@ -48,8 +48,8 @@ module SABR=
     let Sigma_SABR(alpha:float,beta:float,nu:float,texp:float<year>,rho:float,k:float,f:float)=
         if k<=0.0 || f <= 0.0 || alpha<=0.0 then
             0.0        
-        else if k=f then
-            Sigma_SABR_ATM(alpha,beta,nu,texp,rho,f)
+        //else if k=f then
+         //   Sigma_SABR_ATM(alpha,beta,nu,texp,rho,f)
         else
             let t = float texp                                    
                         
@@ -79,7 +79,7 @@ module SABR=
         if sigmaATM <= 0.0 || f <= 0.0   then 0.0
         else
             let p= get_atm_coeffs(b,nu,texp,rho,f) |> Array.ofSeq
-            if Math.Abs(p.[2])<1e-6 then
+            if Math.Abs(p.[2])<1e-12 then
                  invalidArg (nameof b) "Beta higher than 0.5 must not use ATM alp"      
 
             let struct (s1,s2,s3) =                   

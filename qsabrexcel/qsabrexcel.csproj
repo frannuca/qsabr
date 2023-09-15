@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="30.0.1" />
+    <PackageReference Include="Excel-DNA" Version="1.6.0" />
+    <PackageReference Include="ExcelDna.Integration" Version="1.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\qirvol\qirvol.csproj" />
+    <ProjectReference Include="..\qtime\qtime.fsproj" />
+    <ProjectReference Include="..\volatility\volatility.fsproj" />
+  </ItemGroup>
+
+</Project>

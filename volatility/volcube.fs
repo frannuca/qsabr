@@ -45,7 +45,8 @@ type VolSurface(cube:Map<float<year>,Map<int<month>,VolPillar array>>)=
     new(dcube:System.Collections.Generic.IDictionary<float<year>,System.Collections.Generic.IDictionary<int<month>,VolPillar array>>)=
         let cube = dcube |> Seq.map(fun kv -> kv.Key,kv.Value |> Seq.map(fun kv2 -> kv2.Key,kv2.Value) |> Map.ofSeq) |> Map.ofSeq
         VolSurface(cube)
-
+   
+        
     override self.to_csv(filepath:string)=        
         let frame = cube
                     |>Seq.map(fun kv -> let texp=kv.Key
@@ -88,7 +89,19 @@ type VolSurface(cube:Map<float<year>,Map<int<month>,VolPillar array>>)=
         
 
         VolSurface(cube)
-                
+    static member from_frame(frame:Frame<int,string>)=        
+        let cube = frame
+                    |>Frame.mapRowValues(fun series -> {VolPillar.maturity=series.GetAs<float>(SurfaceCsvColumns.Expiry.ToString())*1.0<year>;
+                                                        VolPillar.tenor= int(series.GetAs<float>(SurfaceCsvColumns.Tenor.ToString())*12.0)*1<month>;
+                                                        VolPillar.forwardrate=series.GetAs<float>(SurfaceCsvColumns.Fwd.ToString())*1e-4
+                                                        VolPillar.strike=series.GetAs<double>(SurfaceCsvColumns.Strike.ToString())*1e-4;
+                                                        VolPillar.volatility=series.GetAs<float>(SurfaceCsvColumns.Vol.ToString())*1e-2
+
+                    })|> Series.values
+                    |> Seq.groupBy(fun x -> x.maturity)
+                    |> Map.ofSeq
+                    |> Map.map(fun _ frame -> frame |> Array.ofSeq |>Array.groupBy(fun y -> y.tenor) |> Map.ofSeq)
+        VolSurface(cube)       
 
 ///Helper vol surface builder.
 type VolSurfaceBuilder()=

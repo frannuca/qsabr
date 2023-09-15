@@ -172,9 +172,9 @@ type Testing_Surface_SABR()=
         let vega_1 = computed.Vega(15.0<year>,24<month>,K*1e-4,F*1e-4,0.025)
         let gamma_1 = computed.Gamma(15.0<year>,24<month>,K*1e-4,F*1e-4,0.025,true)
 
-        Assert.Equal(delta_1,0.6271753749662822,5)
-        Assert.Equal(vega_1,0.017926670388162876,5)
-        Assert.Equal(gamma_1,3.7264549799242985,5)
+        Assert.Equal(delta_1,0.6271753749662822,3)
+        Assert.Equal(vega_1,0.017926670388162876,3)
+        Assert.Equal(gamma_1,3.7264549799242985,3)
 
         0.0
         

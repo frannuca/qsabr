@@ -7,7 +7,7 @@ open Deedle
 
 ///Volatility data structure to identify a single point in the volatility surface. 
 ///i.e: maturity, tenor, strike and vol surface point.
-type VolPillar = {tenor:int<month>;strike:float;maturity:float<year>;volatility:float;forwardrate:float;}
+type VolPillar = {tenor:float<year>;strike:float;maturity:float<year>;volatility:float;forwardrate:float;}
 type SurfaceCsvColumns=
     |Tenor
     |Expiry
@@ -35,14 +35,14 @@ type SurfaceCsvColumns=
 
 ///Volatility cube class.
 ///The ctor. requires an array of VolPillars (or surface points)
-type VolSurface(cube:Map<float<year>,Map<int<month>,VolPillar array>>)=
+type VolSurface(cube:Map<float<year>,Map<float<year>,VolPillar array>>)=
     
     inherit BaseSabrCube<VolPillar>(cube)
     ///Maturities expressed in days. Day unit allows to use int keys for maturities with a resolution of 1day.    
     //Tenor,Expiry,Fwd,Strike,Vol
     /// Serializes into csv the vol sureface
 
-    new(dcube:System.Collections.Generic.IDictionary<float<year>,System.Collections.Generic.IDictionary<int<month>,VolPillar array>>)=
+    new(dcube:System.Collections.Generic.IDictionary<float<year>,System.Collections.Generic.IDictionary<float<year>,VolPillar array>>)=
         let cube = dcube |> Seq.map(fun kv -> kv.Key,kv.Value |> Seq.map(fun kv2 -> kv2.Key,kv2.Value) |> Map.ofSeq) |> Map.ofSeq
         VolSurface(cube)
    
@@ -76,7 +76,7 @@ type VolSurface(cube:Map<float<year>,Map<int<month>,VolPillar array>>)=
         let frame= Frame.ReadCsv(path=filepath,hasHeaders=true,separators=",",culture="")
         let cube = frame
                     |>Frame.mapRowValues(fun series -> {VolPillar.maturity=series.GetAs<float>(SurfaceCsvColumns.Expiry.ToString())*1.0<year>;
-                                                        VolPillar.tenor= int(series.GetAs<float>(SurfaceCsvColumns.Tenor.ToString())*12.0)*1<month>;
+                                                        VolPillar.tenor= series.GetAs<float>(SurfaceCsvColumns.Tenor.ToString())*1.0<year>;
                                                         VolPillar.forwardrate=series.GetAs<float>(SurfaceCsvColumns.Fwd.ToString())*1e-4
                                                         VolPillar.strike=series.GetAs<double>(SurfaceCsvColumns.Strike.ToString())*1e-4;
                                                         VolPillar.volatility=series.GetAs<float>(SurfaceCsvColumns.Vol.ToString())*1e-2
@@ -92,7 +92,7 @@ type VolSurface(cube:Map<float<year>,Map<int<month>,VolPillar array>>)=
     static member from_frame(frame:Frame<int,string>)=        
         let cube = frame
                     |>Frame.mapRowValues(fun series -> {VolPillar.maturity=series.GetAs<float>(SurfaceCsvColumns.Expiry.ToString())*1.0<year>;
-                                                        VolPillar.tenor= int(series.GetAs<float>(SurfaceCsvColumns.Tenor.ToString())*12.0)*1<month>;
+                                                        VolPillar.tenor= series.GetAs<float>(SurfaceCsvColumns.Tenor.ToString())*1.0<year>;
                                                         VolPillar.forwardrate=series.GetAs<float>(SurfaceCsvColumns.Fwd.ToString())*1e-4
                                                         VolPillar.strike=series.GetAs<double>(SurfaceCsvColumns.Strike.ToString())*1e-4;
                                                         VolPillar.volatility=series.GetAs<float>(SurfaceCsvColumns.Vol.ToString())*1e-2

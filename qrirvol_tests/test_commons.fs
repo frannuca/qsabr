@@ -10,13 +10,13 @@
     ///Strike deltas
     let strikes_in_bps = [|-150.0;-100.0;-50.0;-25.0;0.0;25.0;50.0;100.0;150.0|]
 
-    let generate_pillar(tenor:int<month>,texp:float<year>,f:float,sigmaB:float array)=
+    let generate_pillar(tenor:float<year>,texp:float<year>,f:float,sigmaB:float array)=
         strikes_in_bps
         |> Array.mapi(fun i dk -> {maturity=texp;strike=f+dk*1e-4;VolPillar.tenor=tenor;VolPillar.volatility=sigmaB.[i];VolPillar.forwardrate=f})
               
-    let compare_surfaces (strikes_in_bps,res:Map<float<year>,Map<int<month>,SABRSolution array>>,surface:VolSurface)=
+    let compare_surfaces (strikes_in_bps,res:Map<float<year>,Map<float<year>,SABRSolution array>>,surface:VolSurface)=
         res
-        |> Map.iter(fun (T:float<year>) (tenor2param:Map<int<month>,SABRSolution array>) ->
+        |> Map.iter(fun (T:float<year>) (tenor2param:Map<float<year>,SABRSolution array>) ->
                           tenor2param
                           |> Map.iter(fun tenor x ->
                                         let computed = strikes_in_bps                                                   
@@ -36,9 +36,9 @@
                                         ||> Array.iter2(fun a b -> Assert.Equal(a,b,0.15))))
     
 
-    let compare_sbar_coeff (res:Map<float<year>,Map<int<month>,SABRSolution array>>,surface:SABRCube)=
+    let compare_sbar_coeff (res:Map<float<year>,Map<float<year>,SABRSolution array>>,surface:SABRCube)=
            res
-           |> Map.iter(fun (T:float<year>) (tenor2param:Map<int<month>,SABRSolution array>) ->
+           |> Map.iter(fun (T:float<year>) (tenor2param:Map<float<year>,SABRSolution array>) ->
                              tenor2param
                              |> Map.iter(fun tenor x ->
                                            let computed = x.[0]
@@ -57,36 +57,36 @@
          ///Strike deltas
         let strikes_in_bps = [|-150.0;-100.0;-50.0;-25.0;0.0;25.0;50.0;100.0;150.0|]
 
-        let generate_pillar(tenor:int<month>,texp:float<year>,f:float,sigmaB:float array)=
+        let generate_pillar(tenor:float<year>,texp:float<year>,f:float,sigmaB:float array)=
             strikes_in_bps
             |> Array.mapi(fun i dk -> {maturity=texp;strike=f+dk*1e-4;VolPillar.tenor=tenor;VolPillar.volatility=sigmaB.[i];VolPillar.forwardrate=f})
            
         VolSurfaceBuilder()
-            .withPillars(generate_pillar(int(2.0<year>*years2months)*1<month>,
+            .withPillars(generate_pillar(2.0<year>,
                                         0.25<year>,
                                         0.0107638332259373,
                                         [|0.0000;1.0470;0.4812;0.4327;0.4268;0.4148;0.4253;0.4322;0.4495|]))
-            .withPillars(generate_pillar(int(2.0<year>*years2months)*1<month>,
+            .withPillars(generate_pillar(2.0<year>,
                                             0.5<year>,
                                             0.011099189328091,
                                             [|0.000;0.9647;0.5079;0.4637;0.4477;0.4390;0.4377;0.4452;0.4576|]))
-            .withPillars(generate_pillar(int(2.0<year>*years2months)*1<month>,
+            .withPillars(generate_pillar(2.0<year>,
                                             0.75<year>,
                                             0.0116024287527238,
                                             [|0.0000;0.8253;0.5033;0.4648;0.4494;0.4387;0.4348;0.4375;0.4463|]))
-            .withPillars(generate_pillar(int(2.0<year>*years2months)*1<month>,
+            .withPillars(generate_pillar(2.0<year>,
                                             1.0<year>,
                                             0.0121935636676584,
                                             [|0.0000;0.6796;0.4788;0.4474;0.4501;0.4435;0.4478;0.4611;0.4754|]))
-            .withPillars(generate_pillar(int(2.0<year>*years2months)*1<month>,
+            .withPillars(generate_pillar(2.0<year>,
                                             2.0<year>,
                                             0.0161959844231264,
                                             [|0.0000;0.9119;0.5417;0.4628;0.4529;0.4461;0.4386;0.4387;0.4442|]))
-            .withPillars(generate_pillar(int(2.0<year>*years2months)*1<month>,
+            .withPillars(generate_pillar(2.0<year>,
                                             5.0<year>,
                                             0.0284363638504981,
                                             [|0.4040;0.3541;0.3218;0.3107;0.3048;0.2975;0.2923;0.2873;0.2870|]))
-            .withPillars(generate_pillar(int(2.0<year>*years2months)*1<month>,
+            .withPillars(generate_pillar(2.0<year>,
                                             10.0<year>,
                                             0.0338734710965737,
                                             [|0.3026;0.2725;0.2510;0.2422;0.2343;0.2279;0.2228;0.2161;0.2128|]))

@@ -7,7 +7,7 @@ open Deedle
 
 
 //Each calibrated smile is charaterized by its alpha, beta, nu, rho and current forward 'f'.
-    type SABRSolution={texp:float<year>;tenor:int<month>;alpha:float;beta:float;nu:float;rho:float;f:float}
+    type SABRSolution={texp:float<year>;tenor:float<year>;alpha:float;beta:float;nu:float;rho:float;f:float}
 
 type SABRCsvColumns=
     |Tenor
@@ -41,7 +41,7 @@ type SABRCsvColumns=
         |_ -> failwith $"Unknown sasbr column name {x}"
 ///Volatility cube class.
 ///The ctor. requires an array of VolPillars (or surface points)
-type SABRCube(cube:Map<float<year>,Map<int<month>,SABRSolution array>>)=
+type SABRCube(cube:Map<float<year>,Map<float<year>,SABRSolution array>>)=
       inherit BaseSabrCube<SABRSolution>(cube)
         
       override self.to_csv(filepath:string)=        
@@ -70,10 +70,10 @@ type SABRCube(cube:Map<float<year>,Map<int<month>,SABRSolution array>>)=
                       
           frame.SaveCsv(filepath,includeRowKeys=false)
                      
-      new(x:System.Collections.Generic.IDictionary<double, System.Collections.Generic.IDictionary<int, SABRSolution[]>>)=
+      new(x:System.Collections.Generic.IDictionary<double, System.Collections.Generic.IDictionary<float, SABRSolution[]>>)=
             SABRCube(x
             |> Seq.map(fun kv -> (kv.Key*1.0<year>,kv.Value
-                                         |> Seq.map(fun kv2 -> (kv2.Key*1<month>,kv2.Value) )
+                                         |> Seq.map(fun kv2 -> (kv2.Key*1.0<year>,kv2.Value) )
                                          |> Map.ofSeq))
             |> Map.ofSeq
             )
@@ -82,7 +82,7 @@ type SABRCube(cube:Map<float<year>,Map<int<month>,SABRSolution array>>)=
       static member from_csv(filepath:string):SABRCube=
           let frame= Frame.ReadCsv(path=filepath)
           let cube = frame
-                      |>Frame.mapRowValues(fun series -> {SABRSolution.tenor=series.GetAs<int>(SABRCsvColumns.Tenor.ToString())*12<month>;
+                      |>Frame.mapRowValues(fun series -> {SABRSolution.tenor=series.GetAs<float>(SABRCsvColumns.Tenor.ToString())*1.0<year>;
                                                           SABRSolution.texp=series.GetAs<float>(SABRCsvColumns.Expiry.ToString())*1.0<year>;
                                                           SABRSolution.f=series.GetAs<float>(SABRCsvColumns.Fwd.ToString())*1e-4
                                                           SABRSolution.alpha=series.GetAs<float>(SABRCsvColumns.Alpha.ToString());

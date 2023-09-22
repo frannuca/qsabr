@@ -5,10 +5,10 @@ namespace volatilityService.server
 {
     using severimpl;
     
-	public class VolatilitySurfaceServiceServer<T>
+	public class VolatilitySurfaceServiceServer
 	{
 		private Server _server;
-		public VolatilitySurfaceServiceServer(string host="localhost",int port=22222)
+		public VolatilitySurfaceServiceServer(string host="localhost",int port=5181)
 		{
             _server = new Server()
             {

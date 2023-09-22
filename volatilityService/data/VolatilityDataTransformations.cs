@@ -7,14 +7,14 @@ namespace volatilityService.data
     {
         public static VolSurface ToVolSurface(this PVolSurface cube)
         {
-            var dt = new Dictionary<double, IDictionary<int, VolPillar[]>>();
+            var dt = new Dictionary<double, IDictionary<double, VolPillar[]>>();
             foreach(var x in cube.Surface)
             {
                 var expiry = x.ExpiryYears;
 
                 if (!dt.ContainsKey(expiry))
                 {
-                    IDictionary<int, VolPillar[]> aux = new Dictionary<int, VolPillar[]>();
+                    IDictionary<double, VolPillar[]> aux = new Dictionary<double, VolPillar[]>();
                     dt[expiry] = aux ;
                 }
 
@@ -28,14 +28,14 @@ namespace volatilityService.data
 
         public static SABRCube toSABRCube(this PSABRCube cube)
         {
-            var dt = new Dictionary<double, IDictionary<int, SABRSolution[]>>();
+            var dt = new Dictionary<double, IDictionary<double, SABRSolution[]>>();
             foreach (var x in cube.Cube)
             {
                 var expiry = x.ExpiryYears;
 
                 if (!dt.ContainsKey(expiry))
                 {
-                    dt[expiry] = new Dictionary<int, SABRSolution[]>();
+                    dt[expiry] = new Dictionary<double, SABRSolution[]>();
                 }
 
                 var tenor = Convert.ToInt32(x.TenorYears * 12);
@@ -50,7 +50,7 @@ namespace volatilityService.data
         {
             var psabr = new PSABRCube();
             
-            foreach (var x in cube.Cube_Ty)
+            foreach (var x in cube.Cube)
             {
                 foreach (var y in x.Value)
                 {
@@ -59,7 +59,7 @@ namespace volatilityService.data
                     psabr.Cube.Add(new PSABRPillar()
                     {
                         ExpiryYears = (float)x.Key,
-                        TenorYears = y.Key,
+                        TenorYears = (float)y.Key,
                         Alpha = (float)sol.alpha,
                         Beta = (float)sol.beta,
                         Forward = (float)sol.f,

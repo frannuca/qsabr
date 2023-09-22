@@ -20,6 +20,7 @@ module SABRInterpolator=
         let rec binary_search(lo:int,hi:int,x:float,arr:float array,tol:float)=
             if arr.Length=0 then invalidArg (nameof arr) $" Array must include at least two for binary search"
             else if arr.Length=1 && Math.Abs(x-arr.[0])>tol then invalidArg (nameof arr) $" Array must include at least two for binary search"
+            else if arr.Length=1 then (lo,lo)
             else if arr.Length=1 && Math.Abs(x-arr.[0])<=tol then (lo,lo)
             else if x < arr.[0] then (lo,lo+1)
             else if x> arr.[arr.Length-1] then (arr.Length-2,arr.Length-1)
@@ -33,7 +34,7 @@ module SABRInterpolator=
                       elif xmid>x then binary_search(lo,mid,x,arr,tol)
                       else  binary_search(mid,hi,x,arr,tol)
 
-        let interpolate_in_tenors(T:float<year>,tenor:int<month>,k:float,f:float)=
+        let interpolate_in_tenors(T:float<year>,tenor:float<year>,k:float,f:float)=
             let tenors = surface.tenors_by_maturity(T) |> Array.ofSeq 
             let itenor_lo,itenor_hi = binary_search(0,tenors.Length,float tenor,tenors|> Array.map(float),0.5)
             let ten_lo = tenors.[itenor_lo]
@@ -49,7 +50,7 @@ module SABRInterpolator=
             else
                 v_lo+(v_hi-v_lo)/float (ten_hi - ten_lo) * float (tenor - ten_lo)
 
-        let interpolate_in_tenors_moneyness(T:float<year>,tenor:int<month>,logf_k:float)=
+        let interpolate_in_tenors_moneyness(T:float<year>,tenor:float<year>,logf_k:float)=
             let tenors = surface.tenors_by_maturity(T) |> Array.ofSeq 
             let itenor_lo,itenor_hi = binary_search(0,tenors.Length,float tenor,tenors|> Array.map(float),0.5)
             let ten_lo = tenors.[itenor_lo]
@@ -69,9 +70,9 @@ module SABRInterpolator=
             else
                 v_lo+(v_hi-v_lo)/float (ten_hi - ten_lo) * float (tenor - ten_lo)
 
-        member self.interpolate(texp:float<year>,tenor:int<month>,k:float,f:float)=
+        member self.interpolate(texp:float<year>,tenor:float<year>,k:float,f:float)=
             //locating the maturity tranche in the sabr cube
-            let maturities = surface.maturities_years |> Array.map(float)
+            let maturities = surface.maturities |> Array.map(float)
             
             let (lo,hi)=binary_search(0,maturities.Length-1,float texp,maturities,1.0/360.0)
             let Tlo = maturities.[lo]*1.0<year>
@@ -92,9 +93,9 @@ module SABRInterpolator=
                 Math.Sqrt(s2)
             
         
-        member self.interpolate_moneyness(texp:float<year>,tenor:int<month>,logf_k:float)=
+        member self.interpolate_moneyness(texp:float<year>,tenor:float<year>,logf_k:float)=
             //locating the maturity tranche in the sabr cube
-            let maturities = surface.maturities_years |> Array.map(float)
+            let maturities = surface.maturities |> Array.map(float)
             
             let (lo,hi)=binary_search(0,maturities.Length-1,float texp,maturities,1.0/360.0)
             let Tlo = maturities.[lo]*1.0<year>
@@ -116,7 +117,7 @@ module SABRInterpolator=
             
     
     
-        member self.resample_surface(expiries:float<year> array,tenors:int<month> array,logf_k:float array,fwd:float)=
+        member self.resample_surface(expiries:float<year> array,tenors:float<year> array,logf_k:float array,fwd:float)=
             //resampling the vol surface:
             let slogf_k = logf_k |> Array.sortDescending
             expiries
@@ -137,14 +138,14 @@ module SABRInterpolator=
                 )|>Map.ofArray
                 |> VolSurface
 
-        member self.get_smile(expirie:float<year>,tenor:int<month>,logf_k:float array,fwd:float)=
+        member self.get_smile(expirie:float<year>,tenor:float<year>,logf_k:float array,fwd:float)=
             //resampling the vol surface:
             self.resample_surface([|expirie|],[|tenor|],logf_k,fwd)
 
         member self.SABRCube with get()=cube
         
              
-        member self.Vega(T:float<year>,tenor:int<month>,K:float,F:float,r:float)=
+        member self.Vega(T:float<year>,tenor:float<year>,K:float,F:float,r:float)=
              let sigma_F = self.interpolate(T,tenor,K,F)
              let sigma_ATM = self.interpolate(T,tenor,F,F)
              let d1 = 1.0/(sigma_F*Math.Sqrt(float T))*(Math.Log(F/K)+sigma_F**2.0/2.0* float T)         
@@ -153,7 +154,7 @@ module SABRInterpolator=
              bsvega*sigma_F/sigma_ATM
 
          //https://www.next-finance.net/IMG/pdf/pdf_SABR.pdf (3.9)
-        member self.Delta(T:float<year>,tenor:int<month>,K:float,F:float,r:float,isCall:bool)=
+        member self.Delta(T:float<year>,tenor:float<year>,K:float,F:float,r:float,isCall:bool)=
             let sigma= self.interpolate(T,tenor,K,F)
             
             
@@ -172,7 +173,7 @@ module SABRInterpolator=
             let dsigma_F = gg.Gradient([|F|]).[0]
             bsDelta+bsvega*dsigma_F
 
-        member self.Gamma(T:float<year>,tenor:int<month>,K:float,F:float,r:float,isCall:bool)=
+        member self.Gamma(T:float<year>,tenor:float<year>,K:float,F:float,r:float,isCall:bool)=
             
             let xoptfunc = System.Func<float array, float>(fun (x:float array) -> self.Delta(T,tenor,K,x.[0],r,isCall))
             let gg =   new FiniteDifferences(1, xoptfunc,1,1e-6)

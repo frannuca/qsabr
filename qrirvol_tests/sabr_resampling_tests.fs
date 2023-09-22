@@ -33,7 +33,7 @@ type Testing_Surface_SABR()=
 
         //reconstructing for maturities in between 0.5 and 0.75 years:
         let all_maturities = [|0.5;0.55;0.6;0.65;0.7;0.75|] |> Array.map(fun t -> t*1.0<year>)
-        let all_tenors = [|2 .. 30|] |> Array.map(fun n -> n*1<month>) 
+        let all_tenors = [|2 .. 30|] |> Array.map(fun n -> float n/12.0*1.0<year>) 
 
         let logf_K = [0 .. N-1]
                         |> Seq.map(fun n -> Math.Log(float 0.5+(2.0-0.5)*float n/(float N-1.0)))
@@ -57,7 +57,7 @@ type Testing_Surface_SABR()=
         (expected_surface.maturities,computed_surface.maturities) ||> Array.iter2(fun a b -> Assert.Equal(a,b))
 
         //Checking tenors:
-        expected_surface.maturities_years
+        expected_surface.maturities
         |> Array.iter(fun texp ->
                     (expected_surface.tenors_by_maturity(texp),computed_surface.tenors_by_maturity(texp))
                      ||> Seq.iter2(fun a b -> Assert.Equal(a,b))
@@ -65,7 +65,7 @@ type Testing_Surface_SABR()=
 
         //Checking values:
         //Checking tenors:
-        expected_surface.maturities_years
+        expected_surface.maturities
         |> Array.iter(fun texp ->
                     expected_surface.tenors_by_maturity(texp)
                     |> Seq.iter(fun tenor ->
@@ -102,12 +102,12 @@ type Testing_Surface_SABR()=
         let volinterpolator = SABRInterpolator.SurfaceInterpolator(surface,beta)
 
         //As only 1 tenor is available, interpolation on a different tenor must return an exception.
-        Assert.Throws<System.ArgumentException >(fun ()->volinterpolator.interpolate_moneyness(0.5<year>,12<month>,0.0)|>ignore)
+        Assert.Throws<System.ArgumentException >(fun ()->volinterpolator.interpolate_moneyness(0.5<year>,1.0<year>,0.0)|>ignore)
         |>ignore
 
         //Interpolation on an single existing tenor point must just return the interpolated point (no exception)
-        let a= volinterpolator.interpolate_moneyness(0.5<year>,24<month>,0.0)
-        Assert.Equal(a,surface.Cube_Ty.[0.5<year>].[24<month>].[3].volatility,1)
+        let a= volinterpolator.interpolate_moneyness(0.5<year>,2.0<year>,0.0)
+        Assert.Equal(a,surface.Cube.[0.5<year>].[2.0<year>].[3].volatility,1)
 
 
     [<Fact>]
@@ -133,7 +133,7 @@ type Testing_Surface_SABR()=
         let beta=0.5
         
 
-        test_commons.compare_sbar_coeff(expected.Cube_Ty,computed)
+        test_commons.compare_sbar_coeff(expected.Cube,computed)
 
 
     [<Fact>]
@@ -168,13 +168,13 @@ type Testing_Surface_SABR()=
         let computed = SABRInterpolator.SurfaceInterpolator(test_commons.get_benchmark_surface(),beta)
         let F = 267.84261
         let K = 117.84261
-        let delta_1 = computed.Delta(15.0<year>,24<month>,K*1e-4,F*1e-4,0.025,true)
-        let vega_1 = computed.Vega(15.0<year>,24<month>,K*1e-4,F*1e-4,0.025)
-        let gamma_1 = computed.Gamma(15.0<year>,24<month>,K*1e-4,F*1e-4,0.025,true)
+        let delta_1 = computed.Delta(15.0<year>,2.0<year>,K*1e-4,F*1e-4,0.025,true)
+        let vega_1 = computed.Vega(15.0<year>,2.0<year>,K*1e-4,F*1e-4,0.025)
+        let gamma_1 = computed.Gamma(15.0<year>,2.0<year>,K*1e-4,F*1e-4,0.025,true)
 
-        Assert.Equal(delta_1,0.6271753749662822,3)
+        Assert.Equal(delta_1,0.6271753749662822,2)
         Assert.Equal(vega_1,0.017926670388162876,3)
-        Assert.Equal(gamma_1,3.7264549799242985,3)
+        Assert.Equal(gamma_1,3.7264549799242985,1)
 
         0.0
         

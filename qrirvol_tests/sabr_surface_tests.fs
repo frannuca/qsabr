@@ -22,7 +22,7 @@ type Testing_Surface_SABR()=
         let f =  0.028436364    //spot forward
         let beta = 0.5          //CIR model is assumed
         let texp = 5.0<year>    // five years Swaption maturity
-        let tenor = 3<month>    // 3 months tenor.
+        let tenor = 0.25<year>    // 3 months tenor.
         let nu0=0.05            // initial vol of vol parameter for the underlying optimization algorithm
         let rho0 = 0.1          // initial rho  parameter for the underlying optimization algorithm
 
@@ -38,7 +38,7 @@ type Testing_Surface_SABR()=
                         .Build()
 
         // calibration of the surface (smile) 
-        let res = SABR.sigma_calibrate(surface,nu0,rho0,beta).Cube_Ty
+        let res = SABR.sigma_calibrate(surface,nu0,rho0,beta).Cube
 
         //Since we only have one smile for the 3m in 5y we just extract the calibrated parameters for the smile.
         //TODO: In this version expiries as expressed as floating key, which is not ideal as matching requires tolerance.        
@@ -50,7 +50,7 @@ type Testing_Surface_SABR()=
         Assert.Equal(coeff.[0].beta,0.5,2)
         Assert.Equal(coeff.[0].nu,0.37371398762385843,2)
         Assert.Equal(coeff.[0].rho,-0.03295848492102798,2)
-        Assert.Equal(float coeff.[0].tenor,float 3,2)
+        Assert.Equal(float coeff.[0].tenor,float 0.25,2)
         Assert.Equal(float coeff.[0].texp,float texp,2)
         Assert.Equal(float coeff.[0].f,float f,2)
         
@@ -76,7 +76,7 @@ type Testing_Surface_SABR()=
         let beta=0.5
 
         // calibration of the surface (smile) 
-        let res = SABR.sigma_calibrate(surface,nu0,rho0,beta).Cube_Ty
+        let res = SABR.sigma_calibrate(surface,nu0,rho0,beta).Cube
         test_commons.compare_surfaces(strikes_in_bps,res,surface)
         
         0.0
@@ -100,7 +100,7 @@ type Testing_Surface_SABR()=
         let beta=1.0
 
         // calibration of the surface (smile) 
-        let res = SABR.sigma_calibrate(surface,nu0,rho0,beta).Cube_Ty
+        let res = SABR.sigma_calibrate(surface,nu0,rho0,beta).Cube
         test_commons.compare_surfaces(strikes_in_bps,res,surface)
         
         0.0

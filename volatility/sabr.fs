@@ -197,13 +197,13 @@ module SABR=
         let alpha0 = 0.01
         if beta<=0.5 then 
             volsurface.maturities
-            |> Array.map(fun texp -> let ftexp = float(texp)*1.0<day>*timeconversions.days2year
+            |> Array.map(fun texp -> let ftexp = float(texp)*1.0<year>
                                      ftexp,volsurface.tenors_by_maturity(ftexp) |> Array.ofSeq
                                      |> Array.map(fun tenor -> tenor,[|calibrate_smile(volsurface.Smile(ftexp,tenor),nu0,rho0,beta)|])|> Map.ofArray)
                                      |>Map.ofArray
         else
             volsurface.maturities
-            |> Array.map(fun texp -> let ftexp = float(texp)*1.0<day>*timeconversions.days2year
+            |> Array.map(fun texp -> let ftexp = float(texp)*1.0<year>
                                      ftexp,volsurface.tenors_by_maturity(ftexp) |> Array.ofSeq
                                      |> Array.map(fun tenor -> tenor,[|calibrate_smile_with_alpha(volsurface.Smile(ftexp,tenor),alpha0,nu0,rho0,beta)|])|> Map.ofArray)
                                      |>Map.ofArray

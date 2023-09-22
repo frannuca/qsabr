@@ -7,12 +7,10 @@ namespace qsabrexcel
 {
     using CsvHelper;
     using data;
-    using MathNet.Numerics.Integration;
-    using qirvol.qtime;
     using System.Collections.Generic;
     using System.Globalization;
 
-    public static class volsurface
+    public static class ExcelVolSurfaceCalculator
     {
         private static Dictionary<string, SABRInterpolator.SurfaceInterpolator> _volsufaces= new Dictionary<string, SABRInterpolator.SurfaceInterpolator>();
         
@@ -40,11 +38,11 @@ namespace qsabrexcel
 
                 var reader = new StringReader(csvstr.ToString());
                 var data = new CsvReader(reader, CultureInfo.InvariantCulture);
-                IDictionary<double, IDictionary<int, VolPillar[]>> records =
+                IDictionary<double, IDictionary<double, VolPillar[]>> records =
                     data.GetRecords<CSV_VolSurface>()
                     .GroupBy(x => x.Expiry)
                     .ToDictionary(x => x.Key,
-                                    x => (IDictionary<int, VolPillar[]>)x.GroupBy(y => (int)(y.Tenor * 12))
+                                    x => (IDictionary<double, VolPillar[]>)x.GroupBy(y => (int)(y.Tenor * 12))
                                     .ToDictionary(a => a.Key,
                                                   b => b.Select(v => new VolPillar(tenor: (int)(v.Tenor * 12), strike: v.Strike, maturity: v.Expiry, volatility: v.Vol, forwardrate: v.Fwd)).ToArray()));
 
@@ -70,6 +68,17 @@ namespace qsabrexcel
             
             
             return interp.interpolate(T,tenor,K,fwd);
+        }
+
+        [ExcelFunction(Name = "SABR_Delta")]
+        public static double SABR_Delta(string handle, double T, int tenor, double K, double fwd,double zerorate,bool isCall)
+        {
+            if (ExcelDnaUtil.IsInFunctionWizard()) return 0.0;
+            var interp = _volsufaces[handle];
+
+
+
+            return interp.Delta(T, tenor, K, fwd, zerorate, isCall);
         }
 
     }

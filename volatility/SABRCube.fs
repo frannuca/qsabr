@@ -53,7 +53,7 @@ type SABRCube(cube:Map<float<year>,Map<float<year>,SABRSolution array>>)=
                                                       let tenor=kv2.Key
                                                       let pillars=kv2.Value
                                                       pillars |>
-                                                      Seq.map(fun p -> [SABRCsvColumns.Tenor,float(p.tenor)/12.0;
+                                                      Seq.map(fun p -> [SABRCsvColumns.Tenor,float(p.tenor);
                                                                         SABRCsvColumns.Expiry,float(p.texp);
                                                                         SABRCsvColumns.Fwd,float(p.f)*1e4;
                                                                         SABRCsvColumns.Alpha,float(p.alpha);

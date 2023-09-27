@@ -14,19 +14,28 @@ namespace volatilityService.severimpl
 		public VolatilitySurfaceServiceImpl()
 		{}
 
+		public override Task<VolatlityServiceHeartBeat> HeartBeat(VolatlityServiceHeartBeat request,
+			ServerCallContext context)
+		{
+			var response = new VolatlityServiceHeartBeat();
+			response.Message = $"{request.Message}_OK";
+			Console.WriteLine("Server Processing");
+			return Task.FromResult(response);
+		}
 		public override Task<VolatilitySABRResponse> ComputeSABR(VolatilitySABRRequest request, ServerCallContext context)
 		{
-			var surface = request.SurfaceGridInput.ToVolSurface();
+			Console.WriteLine("Reached!!");
+			/*var surface = request.SurfaceGridInput.ToVolSurface();
 
 			var beta = request.Beta;
 			var nu0 = 0.01;
 			var rho0 = 0.6;
 			// calibration of the surface (smile) 
 			SABRCube sabrCube = SABR.sigma_calibrate(surface, nu0, rho0, beta);
-
+		*/
 			var response = new VolatilitySABRResponse()
 			{
-				SabrCubeComputed = sabrCube.toPSBARCube()
+				SabrCubeComputed = null
 			};
 			
 			return Task.FromResult(response);

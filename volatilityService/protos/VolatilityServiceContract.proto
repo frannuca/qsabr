@@ -59,8 +59,12 @@ message VolatilitySABRResponse
 	PSABRCube sabr_cube_computed = 1;
 }
 
-
+message VolatlityServiceHeartBeat
+{
+    string message = 1;
+}
 service VolatilitySurfaceService
 {
-	rpc ComputeSABR(VolatilitySABRRequest) returns (VolatilitySABRResponse){}	
+	rpc ComputeSABR(VolatilitySABRRequest) returns (VolatilitySABRResponse){}
+	rpc HeartBeat(VolatlityServiceHeartBeat) returns (VolatlityServiceHeartBeat){}	
 }

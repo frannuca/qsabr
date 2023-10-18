@@ -43,8 +43,8 @@ type SABRCsvColumns=
 ///The ctor. requires an array of VolPillars (or surface points)
 type SABRCube(cube:Map<float<year>,Map<float<year>,SABRSolution array>>)=
       inherit BaseSabrCube<SABRSolution>(cube)
-        
-      override self.to_csv(filepath:string)=        
+      
+      member self.getCoeffs()=        
           let frame = cube
                       |>Seq.map(fun kv -> let texp=kv.Key
                                           let tenorframe = kv.Value
@@ -67,6 +67,10 @@ type SABRCube(cube:Map<float<year>,Map<float<year>,SABRSolution array>>)=
                       )|>Seq.concat   |> Seq.mapi(fun i x->i,x)                                               
                       |>Frame.ofRows
                       
+                      
+          frame
+      override self.to_csv(filepath:string)=        
+          let frame = self.getCoeffs() 
                       
           frame.SaveCsv(filepath,includeRowKeys=false)
                      

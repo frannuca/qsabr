@@ -39,12 +39,12 @@ namespace qsabrexcel
                 var reader = new StringReader(csvstr.ToString());
                 var data = new CsvReader(reader, CultureInfo.InvariantCulture);
                 IDictionary<double, IDictionary<double, VolPillar[]>> records =
-                    data.GetRecords<CSV_VolSurface>()
+                    (IDictionary<double, IDictionary<double, VolPillar[]>>)data.GetRecords<CSV_VolSurface>()
                     .GroupBy(x => x.Expiry)
                     .ToDictionary(x => x.Key,
-                                    x => (IDictionary<double, VolPillar[]>)x.GroupBy(y => (int)(y.Tenor * 12))
+                                    x => (IDictionary<double, VolPillar[]>)x.GroupBy(y => (y.Tenor))
                                     .ToDictionary(a => a.Key,
-                                                  b => b.Select(v => new VolPillar(tenor: (int)(v.Tenor * 12), strike: v.Strike, maturity: v.Expiry, volatility: v.Vol, forwardrate: v.Fwd)).ToArray()));
+                                                  b => b.Select(v => new VolPillar(tenor: (v.Tenor), strike: v.Strike, maturity: v.Expiry, volatility: v.Vol, forwardrate: v.Fwd)).ToArray()));
 
                 var surface = new VolSurface(records);
                 var key = create_vol_surface_id();
@@ -79,6 +79,33 @@ namespace qsabrexcel
 
 
             return interp.Delta(T, tenor, K, fwd, zerorate, isCall);
+        }
+
+        [ExcelFunction(Name = "SABR_Coefficients")]
+        public static object[,] SABR_Coefficients(string handle)
+        {
+            try
+            {
+                if (ExcelDnaUtil.IsInFunctionWizard()) return new object[0, 0];
+                var interp = _volsufaces[handle];
+
+                var frame = interp.SABRCube.getCoeffs();
+                var coeffs = frame.ToArray2D<object>();
+                var result = new object[coeffs.GetLength(0) + 1, coeffs.GetLength(1)];
+                for(int i=0; i<coeffs.GetLength(0);++i)
+                    for(int j=0;j<coeffs.GetLength(1);++j)
+                        result[i + 1, j] = coeffs[i,j];
+
+                for (int i = 0; i < frame.Columns.Keys.Count(); ++i) { result[0, i] = frame.Columns.Keys.ToList()[i].ToString(); }
+
+
+                return result;
+            }
+            catch(Exception ex)
+            {
+                return new object[1, 1] { { ex.Message } };
+            }
+            
         }
 
     }

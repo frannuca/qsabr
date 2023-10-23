@@ -2,9 +2,11 @@
 using MathNet.Numerics.Statistics;
 using qirvol.volatility;
 using System.Text;
+using Excel = Microsoft.Office.Interop.Excel;
 
 namespace qsabrexcel
 {
+    using Accord;
     using CsvHelper;
     using data;
     using System.Collections.Generic;
@@ -13,28 +15,36 @@ namespace qsabrexcel
     public static class ExcelVolSurfaceCalculator
     {
         private static Dictionary<string, SABRInterpolator.SurfaceInterpolator> _volsufaces= new Dictionary<string, SABRInterpolator.SurfaceInterpolator>();
-        
+        private static Dictionary<int, string> _volid_cache =  new Dictionary<int, string> ();
         private static string create_vol_surface_id() => "volsurface_"+ System.Guid.NewGuid().ToString();
 
-        [ExcelFunction(Name = "VolSurfaceGenerator", IsVolatile = false)]
+        
+        [ExcelFunction(Name = "VolSurfaceGenerator", IsVolatile = false, IsMacroType = true)]
         public static string VolSurfaceGenerator(object[,] values,double beta)
         {
             try
             {
                 if (ExcelDnaUtil.IsInFunctionWizard()) return "!!! In FunctionWizard";
+                
 
                 StringBuilder csvstr = new StringBuilder();
                 int rows = values.GetLength(0);
                 int cols = values.GetLength(1);
+                int ohash = 0;
                 for (int i = 0; i < rows; i++)
                 {
                     for (int j = 0; j < cols; j++)
                     {
-                        csvstr.Append(values[i, j].ToString());
+                        var v = values[i, j];
+                        var iv = v.GetHashCode();
+                        ohash = (((iv << 5) + ohash) ^ iv);
+                        csvstr.Append(v.ToString());
                         if (j < cols - 1) csvstr.Append(",");
                     }
                     csvstr.AppendLine();
                 }
+
+                if(_volid_cache.ContainsKey(ohash)) return _volid_cache[ohash];
 
                 var reader = new StringReader(csvstr.ToString());
                 var data = new CsvReader(reader, CultureInfo.InvariantCulture);
@@ -51,6 +61,7 @@ namespace qsabrexcel
                 var interp = new SABRInterpolator.SurfaceInterpolator(surface,beta);
 
                 _volsufaces.Add(key, interp);
+                _volid_cache.Add(ohash, key);
                 return key;
             }
             catch(Exception e)

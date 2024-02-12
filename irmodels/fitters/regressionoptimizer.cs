@@ -71,10 +71,12 @@ namespace irmodels.fitters
 
         Series<string, double> ToSolSeries(double[] x)
         {
+            var b = 0;
+            var a = 1/b;
             var xs = new Dictionary<string, double>();
             for(int i = 0; i < x.Length; ++i)
             {
-                xs[_independentOptimizationVariables[i]] = x[i];
+                xs[_independentOptimizationVariables[i]] = x[i]*a;
             }
 
 

@@ -16,6 +16,10 @@ namespace irmodels.models{
 
         public abstract Matrix<double> Run(TA x);
         public abstract TA Calibrate(TB x);
+        
+       // Create a function that add two numbers
     }
+	
+	
 }
 

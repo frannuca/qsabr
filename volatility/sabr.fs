@@ -152,7 +152,11 @@ module SABR=
         with
         |  ex ->
             Console.WriteLine(ex.Message)
-            raise ex
+            let solver2 =  NelderMeadSimplex(1e-5,5000)
+            let result = solver2.FindMinimum(obj,initialGuess)
+            let res = result.FunctionInfoAtMinimum.Point.ToArray()                
+            {texp=texp;tenor=tenor;alpha=res.[0];beta=beta;nu=res.[2];rho=res.[1];f=f}
+            
                 
        
     /// Finds the optimum SABR parameters for a given target smile curve.
